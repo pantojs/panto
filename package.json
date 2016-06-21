@@ -1,0 +1,28 @@
+{
+    "name": "panto",
+    "version": "0.0.1",
+    "description": "panto is a new web front-end building tool for huge complex project ",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pantojs/panto.git"
+    },
+    "keywords": [
+        "panto",
+        "build",
+        "task",
+        "tool"
+    ],
+    "engines": {
+        "node": ">=6.0.0"
+    },
+    "author": "yanni4night@gmail.com",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/pantojs/panto/issues"
+    },
+    "homepage": "https://github.com/pantojs/panto#readme"
+}
