@@ -11,4 +11,4 @@
   */
 'use strict';
 
-module.exports = 'pantojs is coming soon';
+module.exports = require('./src/panto');
