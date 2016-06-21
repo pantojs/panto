@@ -15,9 +15,7 @@ const glob = require('glob');
 
 const chokidar = require('chokidar');
 
-const {
-    info
-} = require('./logger');
+const logger = require('./logger');
 
 const isString = require('lodash/isString');
 const isFunction = require('lodash/isFunction');
@@ -35,6 +33,12 @@ class Panto {
         Object.defineProperties(this, {
             options: {
                 value: extend({}, defaultOpts, opts),
+                writable: false,
+                configurable: false,
+                enumerable: true
+            },
+            log: {
+                value: logger,
                 writable: false,
                 configurable: false,
                 enumerable: true
@@ -113,21 +117,21 @@ class Panto {
             cwd: cwd
         });
         watcher.on('add', path => {
-                info(`File ${path} has been added`);
+                this.log.info(`File ${path} has been added`);
                 this._onWatchFiles({
                     filename: path,
                     cmd: 'add'
                 });
             })
             .on('change', path => {
-                info(`File ${path} has been changed`);
+                this.log.info(`File ${path} has been changed`);
                 this._onWatchFiles({
                     filename: path,
                     cmd: 'change'
                 });
             })
             .on('unlink', path => {
-                info(`File ${path} has been removed`);
+                this.log.info(`File ${path} has been removed`);
                 this._onWatchFiles({
                     filename: path,
                     cmd: 'remove'
@@ -144,7 +148,7 @@ class Panto {
                 if (startStreamIdx === this.streams.length) {
                     const diff = process.hrtime(startTime);
                     const millseconds = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
-                    info(`Complete in ${millseconds}ms`);
+                    this.log.info(`Complete in ${millseconds}ms`);
                     resolve(ret);
                 } else {
                     const stream = this.streams[startStreamIdx];

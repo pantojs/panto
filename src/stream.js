@@ -50,14 +50,9 @@ class Stream extends EventEmitter {
     pipe(transformer) {
         const child = new Stream(this, this.pattern, transformer);
         child.on('end', leaf => {
-            // bubble up
             this.emit('end', leaf);
         });
         return child;
-    }
-    update(filename) {
-        this.cacheFiles.remove(filename);
-        return this;
     }
     match(filename) {
         if (!this.pattern) {
@@ -65,17 +60,16 @@ class Stream extends EventEmitter {
         }
         return minimatch(filename, this.pattern);
     }
-    flow(files, diffs) {
+    flow(files) {
         if (this.parent) {
-            return this.parent.flow(files, diffs).then(files => {
-                return this._flow(files, diffs);
+            return this.parent.flow(files).then(files => {
+                return this._flow(files);
             });
         } else {
-            return this._flow(files, diffs);
+            return this._flow(files);
         }
     }
-    _flow(files, diffs) {
-        this._tryRefreshCache(diffs);
+    _flow(files) {
         const tasks = files.map(file => {
             if (this.cacheFiles.has(file.filename)) {
                 return Promise.resolve(this.cacheFiles.get(file.filename));
@@ -90,15 +84,16 @@ class Stream extends EventEmitter {
         });
         return Promise.all(tasks).then(flattenDeep);
     }
-    _tryRefreshCache(diffs = []) {
-        diffs.forEach(({
-            filename,
-            cmd
-        }) => {
-            if (cmd === 'remove' || cmd === 'change') {
-                this.update(filename);
-            }
+    refreshCache(diffs = {}) {
+
+        diffs.remove.slice().concat(diffs.change).forEach(filename => {
+            this.cacheFiles.remove(filename);
         });
+
+        if (this.parent) {
+            this.parent.refreshCache(diffs);
+        }
+
         return this;
     }
     end(tag) {
