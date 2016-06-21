@@ -13,32 +13,98 @@
 
 const glob = require('glob');
 
+const fs = require('fs');
 const chokidar = require('chokidar');
+const path = require('path');
+const mkdirp = require('mkdirp');
+const minimatch = require('minimatch');
 
 const logger = require('./logger');
 
 const isString = require('lodash/isString');
+const camelCase = require('lodash/camelCase');
 const isFunction = require('lodash/isFunction');
 const extend = require('lodash/extend');
+const lodash = require('lodash');
+const flattenDeep = require('lodash/flattenDeep');
 const Stream = require('./stream');
-const File = require('./file');
 const FileCollection = require('./file-collection');
 
 class Panto {
-    constructor(opts, taskRun) {
+    constructor() {
         const defaultOpts = {
             cwd: process.cwd(),
-            output: 'output'
+            output: 'output',
+            binaryResource: 'webp,png,jpg,jpeg,gif,bmp,tiff,swf,woff,woff2,ttf,eot,otf,cur,zip,gz,7z,gzip,tgz,lzh,lha,bz2,bzip2,tbz2,tbz,xz,txz,z,lzma,arj,cab,alz,egg,bh,jar,iso,img,udf,wim,rar,tar,bz2,apk,ipa,exe,pages,numbers,key,graffle,xmind,xls,xlsx,doc,docx,ppt,pptx,pot,potx,ppsx,pps,pptm,potm,ppsm,thmx,ppam,ppa,psd,dmg,pdf,rtf,dot,mht,dotm,docm,csv,xlt,xls,xltx,xla,xltm,xlsm,xlam,xlsb,slk,mobi,mp3,mp4,wma,rmvb,ogg,wav,aiff,midi,au,aac,flac,ape,avi,mov,asf,wmv,3gp,mkv,mov,flv,f4v,rmvb,webm,vob,rmf'
         };
+        const options = extend({}, defaultOpts);
+
+        const isBinary = filename => minimatch(filename, options.binaryResource);
+
+        const L = name => path.join(options.cwd, name);
+
+        const safeDirp = name => {
+            const fpath = L(name);
+            const dir = path.dirname(fpath);
+            return new Promise(resolve => {
+                fs.exists(dir, exist => {
+                    resolve(exist);
+                });
+            }).then(exist => {
+                if (!exist) {
+                    return new Promise((resolve, reject) => {
+                        mkdirp(dir, err => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(fpath);
+                            }
+                        });
+                    });
+                } else {
+                    return fpath;
+                }
+            });
+        };
+
+        const R = name => {
+            return safeDirp(name).then(fpath => {
+                return new Promise((resolve, reject) => {
+                    fs.readFile(fpath, {
+                        encoding: isBinary(name) ? null : 'utf-8'
+                    }, (err, content) => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve(content);
+                        }
+                    });
+                });
+            });
+        };
+        const W = (name, content) => {
+            return safeDirp(name).then(fpath => {
+                return new Promise((resolve, reject) => {
+                    fs.writeFile(fpath, content, err => {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve();
+                        }
+                    });
+                });
+            });
+        };
+
         Object.defineProperties(this, {
-            options: {
-                value: extend({}, defaultOpts, opts),
+            log: {
+                value: logger,
                 writable: false,
                 configurable: false,
                 enumerable: true
             },
-            log: {
-                value: logger,
+            util: {
+                value: lodash,
                 writable: false,
                 configurable: false,
                 enumerable: true
@@ -60,12 +126,33 @@ class Panto {
                 writable: true,
                 configurable: false,
                 enumerable: true
+            },
+            options: {
+                value: options,
+                writable: false,
+                configurable: false,
+                enumerable: true
+            },
+            isBinary: {
+                value: isBinary,
+                writable: false,
+                configurable: false,
+                enumerable: true
+            },
+            file: {
+                value: {
+                    read: R,
+                    write: W
+                },
+                writable: false,
+                configurable: false,
+                enumerable: true
             }
         });
-        Object.freeze(this.options);
-        if (isFunction(taskRun)) {
-            taskRun(this);
-        }
+        Object.freeze(this.file);
+    }
+    setOptions(opt) {
+        extend(this.options, opt);
     }
     getFiles() {
         return new Promise((resolve, reject) => {
@@ -103,6 +190,12 @@ class Panto {
         }).then(() => {
             return this._walkStream();
         });
+    }
+    loadTransformer(name) {
+        const t = require(`panto-transformer-${name}`);
+        this[camelCase(name)] = opts => {
+            return new t();//Function('opts',`return new ${t}(opts)`)(opts);
+        };
     }
     watch() {
         const {
@@ -149,10 +242,10 @@ class Panto {
                     const diff = process.hrtime(startTime);
                     const millseconds = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
                     this.log.info(`Complete in ${millseconds}ms`);
-                    resolve(ret);
+                    resolve(flattenDeep(ret));
                 } else {
                     const stream = this.streams[startStreamIdx];
-                    stream.flow(this.fileCollectionGroup[startStreamIdx].values(), diffs).then(data => {
+                    stream.flow(this.fileCollectionGroup[startStreamIdx].values()).then(data => {
                         ret.push(data);
                         walkStream();
                     }).catch(reject);
@@ -194,18 +287,21 @@ class Panto {
         for (let i = 0; i < filenames.length; ++i) {
             let filename = filenames[i];
             let matched = false;
+            const file = {
+                filename
+            }; // Mutiple shares
 
             this.streams.forEach((stream, idx) => {
                 if (!stream.pattern) {
                     this.restStreamIdx = idx;
                 } else if (stream.match(filename)) {
                     matched = true;
-                    group[idx].add(new File(filename));
+                    group[idx].add(file);
                 }
             });
 
             if (!matched) {
-                leftGroup.add(new File(filename));
+                leftGroup.add(file);
             }
         }
 
@@ -216,4 +312,15 @@ class Panto {
     }
 }
 
-module.exports = Panto;
+const panto = new Panto();
+
+Object.defineProperty(global, 'panto', {
+    value: panto,
+    enumerable: true,
+    writable: false,
+    configurable: false
+});
+
+panto.loadTransformer('read');
+
+module.exports = panto;

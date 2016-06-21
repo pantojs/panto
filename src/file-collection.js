@@ -11,12 +11,10 @@
  */
 'use strict';
 
-const File = require('./file');
 const values = require('lodash/values');
 
 class FileCollection {
     constructor(...filenames) {
-        // Lock this.fileObjects
         Object.defineProperty(this, 'fileObjects', {
             value: {},
             writable: false,
@@ -28,7 +26,9 @@ class FileCollection {
     from(...filenames) {
 
         filenames.forEach(filename => {
-            this.fileObjects[filename] = new File(filename);
+            this.fileObjects[filename] = {
+                filename
+            };
         });
 
         return this;
@@ -56,7 +56,7 @@ class FileCollection {
     refresh(filename) {
         const file = this.fileObjects[filename];
         if (file) {
-            file.truncate();
+            file.content = null
         }
         return this;
     }
@@ -65,15 +65,17 @@ class FileCollection {
     }
     update(diff) {
         switch (diff.cmd) {
-        case 'add':
-            this.add(new File(diff.filename));
-            break;
-        case 'change':
-            this.refresh(diff.filename);
-            break;
-        case 'remove':
-            this.remove(diff.filename);
-            break;
+            case 'add':
+                this.add({
+                    filename: diff.filename
+                });
+                break;
+            case 'change':
+                this.refresh(diff.filename);
+                break;
+            case 'remove':
+                this.remove(diff.filename);
+                break;
         }
     }
 }

@@ -69,12 +69,12 @@ class Stream extends EventEmitter {
             return this._flow(files);
         }
     }
-    _flow(files) {
+    _flow(files = []) {
         const tasks = files.map(file => {
             if (this.cacheFiles.has(file.filename)) {
                 return Promise.resolve(this.cacheFiles.get(file.filename));
             } else if (this.transformer) {
-                return this.transformer.transform(file.clone()).then(file => {
+                return this.transformer.transform(file).then(file => {
                     this.cacheFiles.add(file, true);
                     return file;
                 });

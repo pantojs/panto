@@ -39,4 +39,12 @@ describe('panto', () => {
             });
         });
     });
+    describe('#pick', () => {
+        it('should pick the files', () => {
+            const p = new Panto({
+                cwd: __dirname
+            });
+            assert.ok(p.pick('*-panto.js').match('test-panto.js'));
+        });
+    });
 });

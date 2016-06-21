@@ -1,37 +1,38 @@
 {
-    "name": "panto",
-    "version": "0.0.1",
-    "description": "panto is a new web front-end building tool for huge complex project ",
-    "main": "index.js",
-    "scripts": {
-        "eslint": "./node_modules/.bin/eslint src",
-        "mocha": "./node_modules/.bin/mocha",
-        "test": "npm run eslint && npm run mocha"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/pantojs/panto.git"
-    },
-    "keywords": [
-        "panto",
-        "build",
-        "task",
-        "tool"
-    ],
-    "engines": {
-        "node": ">=6.0.0"
-    },
-    "author": "yanni4night@gmail.com",
-    "license": "Apache-2.0",
-    "bugs": {
-        "url": "https://github.com/pantojs/panto/issues"
-    },
-    "homepage": "https://github.com/pantojs/panto#readme",
-    "dependencies": {
-        "chokidar": "^1.5.2",
-        "colors": "^1.1.2",
-        "glob": "^7.0.5",
-        "lodash": "^4.13.1",
-        "minimatch": "^3.0.2"
-    }
+  "name": "panto",
+  "version": "0.0.1",
+  "description": "panto is a new web front-end building tool for huge complex project ",
+  "main": "index.js",
+  "scripts": {
+    "eslint": "./node_modules/.bin/eslint src",
+    "mocha": "./node_modules/.bin/mocha",
+    "test": "npm run eslint && npm run mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pantojs/panto.git"
+  },
+  "keywords": [
+    "panto",
+    "build",
+    "task",
+    "tool"
+  ],
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "author": "yanni4night@gmail.com",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/pantojs/panto/issues"
+  },
+  "homepage": "https://github.com/pantojs/panto#readme",
+  "dependencies": {
+    "chokidar": "^1.5.2",
+    "colors": "^1.1.2",
+    "glob": "^7.0.5",
+    "lodash": "^4.13.1",
+    "minimatch": "^3.0.2",
+    "panto-transformer-read": "^0.2.1"
+  }
 }
