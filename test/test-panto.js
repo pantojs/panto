@@ -12,6 +12,7 @@
 'use strict';
 const Panto = require('../');
 const assert = require('assert');
+
 /*global describe,it*/
 describe('panto', () => {
     describe('#constructor', () => {
@@ -23,6 +24,18 @@ describe('panto', () => {
             });
             assert.throws(() => {
                 delete p.options;
+            });
+        });
+    });
+    describe('#getFiles', () => {
+        it('should get the files', done => {
+            const p = new Panto({
+                cwd: __dirname
+            });
+            p.getFiles().then(filenames => {
+                assert.ok(filenames.indexOf('test-panto.js') > -1);
+                assert.ok(filenames.indexOf('test-stream.js') > -1);
+                done();
             });
         });
     });

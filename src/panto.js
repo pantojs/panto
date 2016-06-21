@@ -67,11 +67,17 @@ class Panto {
             taskRun(this);
         }
     }
-    build() {
-        return this._getFiles().then(filenames => {
-            return this._group(filenames);
-        }).then(() => {
-            return this._walkStream();
+    getFiles() {
+        return new Promise((resolve, reject) => {
+            glob('**/*.*', {
+                cwd: this.options.cwd
+            }, (err, filenames) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(filenames);
+                }
+            });
         });
     }
     pick(pattern) {
@@ -91,17 +97,11 @@ class Panto {
         });
         return restStream;
     }
-    _getFiles() {
-        return new Promise((resolve, reject) => {
-            glob('**/*.*', {
-                cwd: this.options.cwd
-            }, (err, filenames) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(filenames);
-                }
-            });
+    build() {
+        return this.getFiles().then(filenames => {
+            return this._group(filenames);
+        }).then(() => {
+            return this._walkStream();
         });
     }
     watch() {
