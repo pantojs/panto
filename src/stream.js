@@ -45,7 +45,7 @@ class Stream extends EventEmitter {
             }
         });
 
-        this.name = '';
+        this.tag = '';
     }
     pipe(transformer) {
         const child = new Stream(this, this.pattern, transformer);
@@ -79,11 +79,13 @@ class Stream extends EventEmitter {
         const tasks = files.map(file => {
             if (this.cacheFiles.has(file.filename)) {
                 return Promise.resolve(this.cacheFiles.get(file.filename));
-            } else {
+            } else if (this.transformer) {
                 return this.transformer.transform(file.clone()).then(file => {
                     this.cacheFiles.add(file, true);
                     return file;
                 });
+            } else {
+                return Promise.resolve(file);
             }
         });
         return Promise.all(tasks).then(flattenDeep);
@@ -99,8 +101,8 @@ class Stream extends EventEmitter {
         });
         return this;
     }
-    end(name) {
-        this.name = name;
+    end(tag) {
+        this.tag = tag;
         this.emit('end', this);
     }
 }

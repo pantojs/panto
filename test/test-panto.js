@@ -12,7 +12,7 @@
 'use strict';
 const Panto = require('../');
 const assert = require('assert');
-
+/*global describe,it*/
 describe('panto', () => {
     describe('#constructor', () => {
         it('should define frozen options', () => {
@@ -22,7 +22,7 @@ describe('panto', () => {
                 p.options = 1;
             });
             assert.throws(() => {
-                delete p.options
+                delete p.options;
             });
         });
     });
