@@ -19,7 +19,7 @@ const path = require('path');
 const mkdirp = require('mkdirp');
 const minimatch = require('minimatch');
 
-const logger = require('./logger');
+const logger = require('panto-logger');
 
 const isString = require('lodash/isString');
 const camelCase = require('lodash/camelCase');

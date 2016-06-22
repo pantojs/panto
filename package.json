@@ -1,7 +1,7 @@
 {
   "name": "panto",
   "version": "0.0.1",
-  "description": "panto is a new web front-end building tool for huge complex project ",
+  "description": "Pantojs is a file-transforming task runner",
   "main": "index.js",
   "scripts": {
     "eslint": "./node_modules/.bin/eslint src",
@@ -29,10 +29,10 @@
   "homepage": "https://github.com/pantojs/panto#readme",
   "dependencies": {
     "chokidar": "^1.5.2",
-    "colors": "^1.1.2",
     "glob": "^7.0.5",
     "lodash": "^4.13.1",
     "minimatch": "^3.0.2",
+    "panto-logger": "^0.1.0",
     "panto-transformer-babel": "^0.1.1",
     "panto-transformer-filter": "^0.1.2",
     "panto-transformer-ignore": "^0.2.0",
