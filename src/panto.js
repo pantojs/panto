@@ -193,11 +193,17 @@ class Panto {
             return this._walkStream();
         });
     }
-    loadTransformer(name) {
-        const t = require(`panto-transformer-${name}`);
-        this[camelCase(name)] = opts => {
-            return new t(opts);
-        };
+    loadTransformer(name, transformer) {
+        if (!transformer) {
+            let T = require(`panto-transformer-${name.toLowerCase()}`);
+            this[camelCase(name)] = opts => {
+                return new T(opts);
+            };
+        } else {
+            this[camelCase(name)] = opts => {
+                return new transformer(opts);
+            };
+        }
     }
     watch() {
         const {
