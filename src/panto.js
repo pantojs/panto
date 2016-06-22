@@ -83,7 +83,7 @@ class Panto {
             });
         };
         const W = (name, content) => {
-            return safeDirp(name).then(fpath => {
+            return safeDirp(path.join(options.output, name)).then(fpath => {
                 return new Promise((resolve, reject) => {
                     fs.writeFile(fpath, content, err => {
                         if (err) {
@@ -196,7 +196,7 @@ class Panto {
     loadTransformer(name) {
         const t = require(`panto-transformer-${name}`);
         this[camelCase(name)] = opts => {
-            return new t(); //Function('opts',`return new ${t}(opts)`)(opts);
+            return new t(opts);
         };
     }
     watch() {
@@ -324,5 +324,6 @@ Object.defineProperty(global, 'panto', {
 });
 
 panto.loadTransformer('read');
+panto.loadTransformer('write');
 
 module.exports = panto;
