@@ -36,7 +36,8 @@
     "panto-transformer-babel": "^0.1.1",
     "panto-transformer-filter": "^0.1.2",
     "panto-transformer-ignore": "^0.2.0",
-    "panto-transformer-integrity": "^0.2.0",
+    "panto-transformer-integrity": "^0.2.1",
+    "panto-transformer-less": "^0.1.0",
     "panto-transformer-read": "^0.2.4",
     "panto-transformer-write": "^0.2.5"
   }
