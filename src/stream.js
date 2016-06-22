@@ -14,6 +14,7 @@ const minimatch = require('minimatch');
 const FileCollection = require('./file-collection');
 const EventEmitter = require('events');
 const flattenDeep = require('lodash/flattenDeep');
+const extend = require('lodash/extend');
 
 class Stream extends EventEmitter {
     constructor(parent, pattern, transformer) {
@@ -75,6 +76,7 @@ class Stream extends EventEmitter {
                 return Promise.resolve(this.cacheFiles.get(file.filename));
             } else if (this.transformer) {
                 return this.transformer.transform(file).then(file => {
+                    file = extend({}, file);
                     this.cacheFiles.add(file, true);
                     return file;
                 });
