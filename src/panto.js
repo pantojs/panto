@@ -156,8 +156,10 @@ class Panto {
     }
     getFiles() {
         return new Promise((resolve, reject) => {
-            glob('**/*.*', {
-                cwd: this.options.cwd
+            glob('**/*', {
+                cwd: this.options.cwd,
+                nodir: true,
+                ignore: `${this.options.output}/**/*`
             }, (err, filenames) => {
                 if (err) {
                     reject(err);
@@ -194,7 +196,7 @@ class Panto {
     loadTransformer(name) {
         const t = require(`panto-transformer-${name}`);
         this[camelCase(name)] = opts => {
-            return new t();//Function('opts',`return new ${t}(opts)`)(opts);
+            return new t(); //Function('opts',`return new ${t}(opts)`)(opts);
         };
     }
     watch() {
