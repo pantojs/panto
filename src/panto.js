@@ -326,5 +326,6 @@ Object.defineProperty(global, 'panto', {
 panto.loadTransformer('read');
 panto.loadTransformer('write');
 panto.loadTransformer('babel');
+panto.loadTransformer('filter');
 
 module.exports = panto;

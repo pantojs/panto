@@ -74,11 +74,17 @@ class Stream extends EventEmitter {
         const tasks = files.map(file => {
             if (this.cacheFiles.has(file.filename)) {
                 return Promise.resolve(this.cacheFiles.get(file.filename));
-            } else if (this.transformer) {
-                return this.transformer.transform(file).then(file => {
-                    file = extend({}, file);
-                    this.cacheFiles.add(file, true);
-                    return file;
+            } else if (!!this.transformer) {
+                return this.transformer.transform(file).then(files => {
+                    if (!Array.isArray(files)) {
+                        files = [files];
+                    }
+
+                    return files.filter(file => !!file).map(file => {
+                        this.cacheFiles.add(extend({}, file), true);
+                        return file
+                    });
+
                 });
             } else {
                 return Promise.resolve(file);
