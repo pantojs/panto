@@ -56,7 +56,7 @@ class FileCollection {
     refresh(filename) {
         const file = this.fileObjects[filename];
         if (file) {
-            file.content = null
+            file.content = null;
         }
         return this;
     }

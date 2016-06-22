@@ -74,7 +74,7 @@ class Stream extends EventEmitter {
         const tasks = files.map(file => {
             if (this.cacheFiles.has(file.filename)) {
                 return Promise.resolve(this.cacheFiles.get(file.filename));
-            } else if (!!this.transformer) {
+            } else if (this.transformer) {
                 return this.transformer.transform(file).then(files => {
                     if (!Array.isArray(files)) {
                         files = [files];
@@ -82,7 +82,7 @@ class Stream extends EventEmitter {
 
                     return files.filter(file => !!file).map(file => {
                         this.cacheFiles.add(extend({}, file), true);
-                        return file
+                        return file;
                     });
 
                 });
@@ -92,7 +92,11 @@ class Stream extends EventEmitter {
         });
         return Promise.all(tasks).then(flattenDeep);
     }
-    refreshCache(diffs = {}) {
+    refreshCache(diffs) {
+
+        if (!diffs) {
+            return this;
+        }
 
         diffs.remove.slice().concat(diffs.change).forEach(filename => {
             this.cacheFiles.remove(filename);

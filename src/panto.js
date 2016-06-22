@@ -23,7 +23,6 @@ const logger = require('panto-logger');
 
 const isString = require('lodash/isString');
 const camelCase = require('lodash/camelCase');
-const isFunction = require('lodash/isFunction');
 const extend = require('lodash/extend');
 const lodash = require('lodash');
 const flattenDeep = require('lodash/flattenDeep');
@@ -210,7 +209,7 @@ class Panto {
             cwd,
             output
         } = this.options;
-        info(`Watching ${cwd}...`);
+        this.log.info(`Watching ${cwd}...`);
         const watcher = chokidar.watch(`${cwd}/**/*`, {
             ignored: [`${output}/**/*`, /[\/\\]\./],
             persistent: true,
@@ -240,7 +239,7 @@ class Panto {
             });
 
     }
-    _walkStream(diffs) {
+    _walkStream(classifiedDiffs) {
         return new Promise((resolve, reject) => {
             let ret = [];
             const startTime = process.hrtime();
@@ -253,10 +252,11 @@ class Panto {
                     resolve(flattenDeep(ret));
                 } else {
                     const stream = this.streams[startStreamIdx];
-                    stream.flow(this.fileCollectionGroup[startStreamIdx].values()).then(data => {
-                        ret.push(data);
-                        walkStream();
-                    }).catch(reject);
+                    stream.refreshCache(classifiedDiffs).flow(this.fileCollectionGroup[startStreamIdx].values()).then(
+                        data => {
+                            ret.push(data);
+                            walkStream();
+                        }).catch(reject);
                 }
                 startStreamIdx += 1;
             };
@@ -265,8 +265,16 @@ class Panto {
     }
     _onWatchFiles(...diffs) {
 
+        const classifiedDiffs = {
+            remove:[],
+            add:[],
+            change:[]
+        };
+
         for (let i = 0; i < diffs.length; ++i) {
             let matched = false;
+            
+            classifiedDiffs[diffs[i].cmd] = diffs[i].filename;
 
             for (let j = 0; j < this.streams.length; ++j) {
                 if (this.streams[j].match(diffs[i].filename)) {
@@ -280,7 +288,7 @@ class Panto {
                 this.fileCollectionGroup[this.restStreamIdx].update(diffs[i]);
             }
         }
-        return this._walkStream(diffs);
+        return this._walkStream(classifiedDiffs);
     }
     _group(filenames) {
         const group = this.fileCollectionGroup;
