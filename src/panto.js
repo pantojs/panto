@@ -330,5 +330,6 @@ panto.loadTransformer('filter');
 panto.loadTransformer('ignore');
 panto.loadTransformer('integrity');
 panto.loadTransformer('less');
+panto.loadTransformer('uglify');
 
 module.exports = panto;

@@ -39,6 +39,7 @@
     "panto-transformer-integrity": "^0.2.1",
     "panto-transformer-less": "^0.1.0",
     "panto-transformer-read": "^0.2.4",
+    "panto-transformer-uglify": "^0.1.0",
     "panto-transformer-write": "^0.2.5"
   }
 }
