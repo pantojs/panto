@@ -327,5 +327,6 @@ panto.loadTransformer('read');
 panto.loadTransformer('write');
 panto.loadTransformer('babel');
 panto.loadTransformer('filter');
+panto.loadTransformer('ignore');
 
 module.exports = panto;
