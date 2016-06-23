@@ -41,6 +41,6 @@
     "panto-transformer-read": "^0.3.0",
     "panto-transformer-stamp": "^0.1.0",
     "panto-transformer-uglify": "^0.1.1",
-    "panto-transformer-write": "^0.3.0"
+    "panto-transformer-write": "^0.3.1"
   }
 }
