@@ -31,7 +31,7 @@ const flattenDeep = require('lodash/flattenDeep');
 const Stream = require('./stream');
 const FileCollection = require('./file-collection');
 
-class Panto extends EventEmitter{
+class Panto extends EventEmitter {
     constructor() {
         super();
         const defaultOpts = {
@@ -210,7 +210,10 @@ class Panto extends EventEmitter{
             cwd,
             output
         } = this.options;
+        
+        this.log.info('=================================================');
         this.log.info(`Watching ${cwd}...`);
+        
         const watcher = chokidar.watch(`${cwd}/**/*`, {
             ignored: [`${output}/**/*`, /[\/\\]\./],
             persistent: true,
@@ -248,14 +251,25 @@ class Panto extends EventEmitter{
             const walkStream = () => {
                 if (startStreamIdx === this.streams.length) {
                     const diff = process.hrtime(startTime);
-                    const millseconds = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
-                    this.log.info(`Complete in ${millseconds}ms`);
+                    const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
+                    
+                    this.log.info(`Complete in ${totalMs}ms`);
+                    
                     resolve(flattenDeep(ret));
                 } else {
                     const stream = this.streams[startStreamIdx];
+                    let streamStartTime = process.hrtime();
+                    
+                    this.log.debug(`${stream.tag}...start[${1+startStreamIdx}/${this.streams.length}]`);
+                    
                     stream.refreshCache(classifiedDiffs).flow(this.fileCollectionGroup[startStreamIdx].values())
                         .then(
                             data => {
+                                let streamDiff = process.hrtime(streamStartTime);
+                                const streamMs = parseInt(streamDiff[0] * 1e3 + streamDiff[1] / 1e6, 10);
+                                
+                                this.log.debug(`${stream.tag}...complete in ${streamMs}ms`);
+                                
                                 ret.push(data);
                                 walkStream();
                             }).catch(reject);
