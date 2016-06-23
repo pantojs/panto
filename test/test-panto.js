@@ -83,7 +83,9 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname
             });
-            assert.ok(panto.pick('*-panto.js').match('test-panto.js'), 'match "test-panto.js"');
+            assert.ok(panto.pick('*-panto.js').end().swallow({
+                filename: 'test-panto.js'
+            }), 'match "test-panto.js"');
         });
     });
     describe('#loadTransformer', () => {

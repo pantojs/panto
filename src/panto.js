@@ -202,10 +202,10 @@ class Panto extends EventEmitter {
             cwd,
             output
         } = this.options;
-        
+
         this.log.info('=================================================');
         this.log.info(`Watching ${cwd}...`);
-        
+
         const watcher = chokidar.watch(`${cwd}/**/*`, {
             ignored: [`${output}/**/*`, /[\/\\]\./],
             persistent: true,
@@ -235,7 +235,7 @@ class Panto extends EventEmitter {
             });
 
     }
-    _walkStream(classifiedDiffs) {
+    _walkStream() {
         return new Promise((resolve, reject) => {
             let ret = [];
             const startTime = process.hrtime();
@@ -244,24 +244,24 @@ class Panto extends EventEmitter {
                 if (startStreamIdx === this.streams.length) {
                     const diff = process.hrtime(startTime);
                     const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
-                    
+
                     this.log.info(`Complete in ${totalMs}ms`);
-                    
+
                     resolve(flattenDeep(ret));
                 } else {
                     const stream = this.streams[startStreamIdx];
                     let streamStartTime = process.hrtime();
-                    
+
                     this.log.debug(`${stream.tag}...start[${1+startStreamIdx}/${this.streams.length}]`);
-                    
-                    stream.refreshCache(classifiedDiffs).flow()
+
+                    stream.flow()
                         .then(
                             data => {
                                 let streamDiff = process.hrtime(streamStartTime);
                                 const streamMs = parseInt(streamDiff[0] * 1e3 + streamDiff[1] / 1e6, 10);
-                                
+
                                 this.log.debug(`${stream.tag}...complete in ${streamMs}ms`);
-                                
+
                                 ret.push(data);
                                 walkStream();
                             }).catch(reject);
@@ -276,30 +276,20 @@ class Panto extends EventEmitter {
     }
     _onWatchFiles(...diffs) {
 
-        const classifiedDiffs = {
-            remove: [],
-            add: [],
-            change: []
-        };
-
         for (let i = 0; i < diffs.length; ++i) {
             let matched = false;
 
-            classifiedDiffs[diffs[i].cmd] = diffs[i].filename;
-
             for (let j = 0; j < this.streams.length; ++j) {
-                if (this.streams[j].match(diffs[i].filename)) {
+                if (this.streams[j].fix(diffs[i])) {
                     matched = true;
-
-                    this.streams[j]._matchFiles.update(diffs[i]);
                 }
             }
 
             if (!matched && this.restStreamIdx >= 0) {
-                this.streams[this.restStreamIdx]._matchFiles.update(diffs[i]);
+                this.streams[this.restStreamIdx].fix(diffs[i], true);
             }
         }
-        return this._walkStream(classifiedDiffs);
+        return this._walkStream();
     }
     _group(filenames) {
 
@@ -313,12 +303,10 @@ class Panto extends EventEmitter {
             }; // Mutiple shares
 
             this.streams.forEach((stream, idx) => {
-                // empty pattern means it's a rest stream
-                if (!stream._pattern) { //TODO
+                if (stream.isRest()) {
                     this.restStreamIdx = idx;
-                } else if (stream.match(filename)) {
+                } else if (stream.swallow(file)) {
                     matched = true;
-                    stream._matchFiles.add(file);
                 }
             });
 
@@ -328,7 +316,7 @@ class Panto extends EventEmitter {
         }
 
         if (this.restStreamIdx >= 0) {
-            this.streams[this.restStreamIdx]._matchFiles.wrap(leftGroup);
+            this.streams[this.restStreamIdx].copy(leftGroup);
         }
 
     }

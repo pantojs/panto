@@ -117,15 +117,18 @@ describe('stream', () => {
             rs.emit('end');
         });
     });
-    describe('#match', () => {
-        it('should match the file', () => {
-            const s = new Stream(null, '*.jpg');
-            assert.ok(s.match('a.jpg'));
+    describe('#swallow', () => {
+        it('should swallow the file', () => {
+            const s = new Stream(null, '*.jpg').end();
+            assert.ok(s.swallow({filename:'a.jpg'}));
+            assert.ok(s.swallow({filename:'a.bmp'}, true));
+            assert.ok(s._matchFiles.has('a.jpg'));
+            assert.ok(s._matchFiles.has('a.bmp'));
         });
     });
     describe('#flow', () => {
         it('should return origin if transformer is null', done => {
-            const s = new Stream();
+            const s = new Stream().end();
             s._matchFiles.add({
                 filename: 'a.js'
             });
@@ -135,7 +138,7 @@ describe('stream', () => {
             });
         });
         it('transform using own transformer if no parent', done => {
-            const s = new Stream(null, '', new TestTransformer());
+            const s = new Stream(null, '', new TestTransformer()).end();
             s._matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
@@ -149,9 +152,9 @@ describe('stream', () => {
             });
         });
         it('transform to the ancestor', done => {
-            const s = new Stream(null, '', new TestTransformer());
+            const s = new Stream(null, '', new TestTransformer()).end();
 
-            const s1 = s.pipe(new TestTransformer()).pipe(new TestTransformer());
+            const s1 = s.pipe(new TestTransformer()).pipe(new TestTransformer()).end();
             s1._matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
@@ -165,7 +168,7 @@ describe('stream', () => {
             });
         });
         it('should get multiple files', done => {
-            const s = new Stream(null, '', new MultiplyTransformer());
+            const s = new Stream(null, '', new MultiplyTransformer()).end();
             s._matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
@@ -199,7 +202,7 @@ describe('stream', () => {
             }));
             const s2 = s1.pipe(new AppendTransformer({
                 n: 3
-            }));
+            })).end();
             s2._matchFiles.add({
                 filename: 'a.js'
             });
@@ -208,7 +211,7 @@ describe('stream', () => {
             }).then(() => {
                 const s3 = s1.pipe(new AppendTransformer({
                     n: 4
-                }));
+                })).end();
 
                 s3._matchFiles.add({
                     filename: 'a.js'

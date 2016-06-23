@@ -38,12 +38,6 @@ class Stream extends EventEmitter {
                 configurable: false,
                 enumerable: true
             },
-            _matchFiles: {
-                value: new FileCollection(),
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
             _cacheFiles: {
                 value: new FileCollection(),
                 writable: false,
@@ -61,11 +55,63 @@ class Stream extends EventEmitter {
         });
         return child;
     }
-    match(filename) {
-        if (!this._pattern) {
+    /**
+     * If it's a rest stream.
+     *
+     * Rest stream will add the files rest.
+     * 
+     * @return {Boolean}
+     */
+    isRest() {
+        return null === this._pattern;
+    }
+    /**
+     * If the file matches, or is forced,
+     * then add the file.
+     * 
+     * @param  {object} file
+     * @param  {Boolean} force
+     * @return {Boolean} If added
+     */
+    swallow(file, force) {
+        if (this.isRest() && !force) {
+            return false;
+        } else if (this._matchFiles && (force || minimatch(file.filename, this._pattern))) {
+            this._matchFiles.add(file);
+            return true;
+        } else {
             return false;
         }
-        return minimatch(filename, this._pattern);
+    }
+    /**
+     * Try to fixed the matched/cached files according to diffs.
+     * 
+     * @param  {object} diff
+     * @param  {Boolean} force
+     * @return {Boolean} If fixed
+     */
+    fix(diff, force) {
+        if ('change' === diff.cmd || 'remove' === diff.cmd) {
+            this._cacheFiles.remove(diff.filename);
+        }
+
+        if (this._matchFiles && (force || minimatch(diff.filename, this._pattern))) {
+            this._matchFiles.update(diff);
+
+            return true;
+        }
+        return false;
+    }
+    /**
+     * Copy the files in fileCollection to 
+     * the added file collection.
+     * 
+     * @param  {FileCollection} fileCollection
+     * @return {stream} this
+     */
+    copy(fileCollection) {
+        this._matchFiles.wrap(fileCollection);
+        return this;
     }
     flow(files) {
         files = files || this._matchFiles.values();
@@ -100,24 +146,23 @@ class Stream extends EventEmitter {
         });
         return Promise.all(tasks).then(flattenDeep);
     }
-    refreshCache(diffs) {
-
-        if (!diffs) {
-            return this;
-        }
-
-        diffs.remove.slice().concat(diffs.change).forEach(filename => {
-            this._cacheFiles.remove(filename);
-        });
-
-        if (this._parent) {
-            this._parent.refreshCache(diffs);
-        }
-
-        return this;
-    }
+    /**
+     * Fire an end event.
+     * 
+     * @param  {string} tag  This tag for friendly log
+     * @return {stream} this
+     */
     end(tag) {
         this.tag = tag;
+
+        // The ended stream can have matches files
+        Object.defineProperty(this, '_matchFiles', {
+            value: new FileCollection(),
+            writable: false,
+            configurable: false,
+            enumerable: true
+        });
+
         this.emit('end', this);
         return this;
     }
