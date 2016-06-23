@@ -16,57 +16,52 @@ const extend = require('lodash/extend');
 
 class FileCollection {
     constructor(...filenames) {
-        Object.defineProperty(this, 'fileObjects', {
+        Object.defineProperty(this, '_fileObjects', {
             value: {},
             writable: false,
             configurable: false,
             enumerabel: true
         });
-        this.from(...filenames);
-    }
-    from(...filenames) {
 
         filenames.forEach(filename => {
-            this.fileObjects[filename] = {
+            this._fileObjects[filename] = {
                 filename
             };
         });
-
-        return this;
     }
     wrap(fileCollection) {
-        extend(this.fileObjects, fileCollection.fileObjects);
+        extend(this._fileObjects, fileCollection._fileObjects);
         return this;
     }
     has(filename) {
-        return filename in this.fileObjects;
+        return filename in this._fileObjects;
     }
     get(filename) {
-        return this.fileObjects[filename];
+        return this._fileObjects[filename];
     }
     add(file, force) {
         const {
-            fileObjects
+            _fileObjects
         } = this;
 
-        if (force || !(file.filename in fileObjects)) {
-            fileObjects[file.filename] = file;
+        if (force || !(file.filename in _fileObjects)) {
+            _fileObjects[file.filename] = file;
         }
         return this;
     }
     remove(filename) {
-        delete this.fileObjects[filename];
+        delete this._fileObjects[filename];
         return this;
     }
     refresh(filename) {
-        const file = this.fileObjects[filename];
+        const file = this._fileObjects[filename];
         if (file) {
             file.content = null;
         }
         return this;
     }
     values() {
-        return values(this.fileObjects);
+        return values(this._fileObjects);
     }
     update(diff) {
         switch (diff.cmd) {
