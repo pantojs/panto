@@ -356,15 +356,4 @@ Object.defineProperty(global, 'panto', {
     configurable: false
 });
 
-panto.loadTransformer('read');
-panto.loadTransformer('write');
-panto.loadTransformer('babel');
-panto.loadTransformer('filter');
-panto.loadTransformer('ignore');
-panto.loadTransformer('integrity');
-panto.loadTransformer('less');
-panto.loadTransformer('uglify');
-panto.loadTransformer('stamp');
-panto.loadTransformer('aspect');
-
 module.exports = panto;
