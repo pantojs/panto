@@ -114,7 +114,7 @@ class Panto extends EventEmitter {
                 configurable: false,
                 enumerable: true
             },
-            restStreamIdx: {
+            _restStreamIdx: {
                 value: -1,
                 writable: true,
                 configurable: false,
@@ -285,8 +285,8 @@ class Panto extends EventEmitter {
                 }
             }
 
-            if (!matched && this.restStreamIdx >= 0) {
-                this.streams[this.restStreamIdx].fix(diffs[i], true);
+            if (!matched && this._restStreamIdx >= 0) {
+                this.streams[this._restStreamIdx].fix(diffs[i], true);
             }
         }
         return this._walkStream();
@@ -304,7 +304,7 @@ class Panto extends EventEmitter {
 
             this.streams.forEach((stream, idx) => {
                 if (stream.isRest()) {
-                    this.restStreamIdx = idx;
+                    this._restStreamIdx = idx;
                 } else if (stream.swallow(file)) {
                     matched = true;
                 }
@@ -315,8 +315,8 @@ class Panto extends EventEmitter {
             }
         }
 
-        if (this.restStreamIdx >= 0) {
-            this.streams[this.restStreamIdx].copy(leftGroup);
+        if (this._restStreamIdx >= 0) {
+            this.streams[this._restStreamIdx].copy(leftGroup);
         }
 
     }
