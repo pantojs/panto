@@ -33,6 +33,7 @@
     "lodash": "^4.13.1",
     "minimatch": "^3.0.2",
     "panto-logger": "^0.1.0",
+    "panto-transformer-aspect": "^0.1.0",
     "panto-transformer-babel": "^0.1.1",
     "panto-transformer-filter": "^0.1.2",
     "panto-transformer-ignore": "^0.2.0",

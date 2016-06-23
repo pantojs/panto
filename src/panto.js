@@ -346,5 +346,6 @@ panto.loadTransformer('integrity');
 panto.loadTransformer('less');
 panto.loadTransformer('uglify');
 panto.loadTransformer('stamp');
+panto.loadTransformer('aspect');
 
 module.exports = panto;
