@@ -2,7 +2,7 @@
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
 
-_**Pantojs**_ is an ambitious file-transforming task runner. It supports simultaneous & furcal transforming streams, incremental transforming and stream nodes cache, which make file-transforming much flexible and fast.
+_**PantoJS**_ is an ambitious file-transforming task runner. It supports simultaneous & furcal transforming streams, incremental transforming and stream nodes cache, which make file-transforming much flexible and fast.
 
 
 ```js
@@ -28,7 +28,7 @@ panto.build().then(() => {
 });
 ```
 
-Builtin transformers: `read`,`write`,`babel`,`filter`,`ignore`,`integrity`,`less`,`uglify`,`stamp`,`aspect`.
+Builtin transformers: [read](https://github.com/pantojs/panto-transformer-read),[write](https://github.com/pantojs/panto-transformer-write),[babel](https://github.com/pantojs/panto-transformer-babel),[filter](https://github.com/pantojs/panto-transformer-filter),[ignore](https://github.com/pantojs/panto-transformer-ignore),[integrity](https://github.com/pantojs/panto-transformer-integrity),[less](https://github.com/pantojs/panto-transformer-less),[uglify](https://github.com/pantojs/panto-transformer-uglify),[stamp](https://github.com/pantojs/panto-transformer-stamp),[aspect](https://github.com/pantojs/panto-transformer-aspect).
 
 Make your own _transformer_, just extend [panto-transformer](https://github.com/pantojs/panto-transformer), make sure _\_transform_ function returns a [Promise](https://promisesaplus.com/) object.
 
