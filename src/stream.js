@@ -20,31 +20,31 @@ class Stream extends EventEmitter {
     constructor(parent, pattern, transformer) {
         super();
         Object.defineProperties(this, {
-            parent: {
+            _parent: {
                 value: parent,
                 writable: false,
                 configurable: false,
                 enumerable: true
             },
-            pattern: {
+            _pattern: {
                 value: pattern,
                 writable: false,
                 configurable: false,
                 enumerable: true
             },
-            transformer: {
+            _transformer: {
                 value: transformer,
                 writable: false,
                 configurable: false,
                 enumerable: true
             },
-            matchFiles: {
+            _matchFiles: {
                 value: new FileCollection(),
                 writable: false,
                 configurable: false,
                 enumerable: true
             },
-            cacheFiles: {
+            _cacheFiles: {
                 value: new FileCollection(),
                 writable: false,
                 configurable: false,
@@ -55,23 +55,23 @@ class Stream extends EventEmitter {
         this.tag = '';
     }
     pipe(transformer) {
-        const child = new Stream(this, this.pattern, transformer);
+        const child = new Stream(this, this._pattern, transformer);
         child.on('end', leaf => {
             this.emit('end', leaf);
         });
         return child;
     }
     match(filename) {
-        if (!this.pattern) {
+        if (!this._pattern) {
             return false;
         }
-        return minimatch(filename, this.pattern);
+        return minimatch(filename, this._pattern);
     }
     flow(files) {
-        files = files || this.matchFiles.values();
+        files = files || this._matchFiles.values();
 
-        if (this.parent) {
-            return this.parent.flow(files).then(files => {
+        if (this._parent) {
+            return this._parent.flow(files).then(files => {
                 return this._flow(files);
             });
         } else {
@@ -80,16 +80,16 @@ class Stream extends EventEmitter {
     }
     _flow(files = []) {
         const tasks = files.map(file => {
-            if (this.cacheFiles.has(file.filename)) {
-                return Promise.resolve(this.cacheFiles.get(file.filename));
-            } else if (this.transformer) {
-                return this.transformer.transform(file).then(files => {
+            if (this._cacheFiles.has(file.filename)) {
+                return Promise.resolve(this._cacheFiles.get(file.filename));
+            } else if (this._transformer) {
+                return this._transformer.transform(file).then(files => {
                     if (!Array.isArray(files)) {
                         files = [files];
                     }
 
                     return files.filter(file => !!file).map(file => {
-                        this.cacheFiles.add(extend({}, file), true);
+                        this._cacheFiles.add(extend({}, file), true);
                         return file;
                     });
 
@@ -107,11 +107,11 @@ class Stream extends EventEmitter {
         }
 
         diffs.remove.slice().concat(diffs.change).forEach(filename => {
-            this.cacheFiles.remove(filename);
+            this._cacheFiles.remove(filename);
         });
 
-        if (this.parent) {
-            this.parent.refreshCache(diffs);
+        if (this._parent) {
+            this._parent.refreshCache(diffs);
         }
 
         return this;

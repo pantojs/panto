@@ -291,12 +291,12 @@ class Panto extends EventEmitter {
                 if (this.streams[j].match(diffs[i].filename)) {
                     matched = true;
 
-                    this.streams[j].matchFiles.update(diffs[i]);
+                    this.streams[j]._matchFiles.update(diffs[i]);
                 }
             }
 
             if (!matched && this.restStreamIdx >= 0) {
-                this.streams[this.restStreamIdx].matchFiles.update(diffs[i]);
+                this.streams[this.restStreamIdx]._matchFiles.update(diffs[i]);
             }
         }
         return this._walkStream(classifiedDiffs);
@@ -314,11 +314,11 @@ class Panto extends EventEmitter {
 
             this.streams.forEach((stream, idx) => {
                 // empty pattern means it's a rest stream
-                if (!stream.pattern) {
+                if (!stream._pattern) { //TODO
                     this.restStreamIdx = idx;
                 } else if (stream.match(filename)) {
                     matched = true;
-                    stream.matchFiles.add(file);
+                    stream._matchFiles.add(file);
                 }
             });
 
@@ -328,7 +328,7 @@ class Panto extends EventEmitter {
         }
 
         if (this.restStreamIdx >= 0) {
-            this.streams[this.restStreamIdx].matchFiles.wrap(leftGroup);
+            this.streams[this.restStreamIdx]._matchFiles.wrap(leftGroup);
         }
 
     }

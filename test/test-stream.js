@@ -50,34 +50,34 @@ describe('stream', () => {
     describe('#constructor', () => {
         it('should define sealed parent,pattern,transformer,cacheFiles,resourceMap', () => {
             const s = new Stream();
-            assert.ok('parent' in s);
-            assert.ok('pattern' in s);
-            assert.ok('transformer' in s);
-            assert.equal(s.transformer, undefined);
-            assert.ok('cacheFiles' in s);
+            assert.ok('_parent' in s);
+            assert.ok('_pattern' in s);
+            assert.ok('_transformer' in s);
+            assert.equal(s._transformer, undefined);
+            assert.ok('_cacheFiles' in s);
             assert.throws(() => {
-                s.parent = 1;
+                s._parent = 1;
             });
             assert.throws(() => {
-                delete s.parent;
+                delete s._parent;
             });
             assert.throws(() => {
-                s.pattern = 1;
+                s._pattern = 1;
             });
             assert.throws(() => {
-                delete s.pattern;
+                delete s._pattern;
             });
             assert.throws(() => {
-                s.transformer = 1;
+                s._transformer = 1;
             });
             assert.throws(() => {
-                delete s.transformer;
+                delete s._transformer;
             });
             assert.throws(() => {
-                s.cacheFiles = 1;
+                s._cacheFiles = 1;
             });
             assert.throws(() => {
-                delete s.cacheFiles;
+                delete s._cacheFiles;
             });
         });
     });
@@ -92,20 +92,20 @@ describe('stream', () => {
         it('should pass this as the parent', () => {
             const s = new Stream();
             const rs = s.pipe(new Transformer());
-            assert.ok(s === rs.parent);
+            assert.ok(s === rs._parent);
         });
 
         it('should pass own pattern', () => {
             const s = new Stream();
             const rs = s.pipe(new Transformer());
-            assert.ok(s.pattern === rs.pattern);
+            assert.ok(s._pattern === rs._pattern);
         });
 
         it('should pass the transformer', () => {
             const s = new Stream();
             const tr = new Transformer();
             const rs = s.pipe(tr);
-            assert.ok(tr, rs.transformer);
+            assert.ok(tr, rs._transformer);
         });
 
         it('bubble up "end" event', done => {
@@ -126,7 +126,7 @@ describe('stream', () => {
     describe('#flow', () => {
         it('should return origin if transformer is null', done => {
             const s = new Stream();
-            s.matchFiles.add({
+            s._matchFiles.add({
                 filename: 'a.js'
             });
             s.flow().then(flattenDeep).then(files => {
@@ -136,7 +136,7 @@ describe('stream', () => {
         });
         it('transform using own transformer if no parent', done => {
             const s = new Stream(null, '', new TestTransformer());
-            s.matchFiles.add({
+            s._matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
             });
@@ -152,7 +152,7 @@ describe('stream', () => {
             const s = new Stream(null, '', new TestTransformer());
 
             const s1 = s.pipe(new TestTransformer()).pipe(new TestTransformer());
-            s1.matchFiles.add({
+            s1._matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
             });
@@ -166,7 +166,7 @@ describe('stream', () => {
         });
         it('should get multiple files', done => {
             const s = new Stream(null, '', new MultiplyTransformer());
-            s.matchFiles.add({
+            s._matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
             });
@@ -200,7 +200,7 @@ describe('stream', () => {
             const s2 = s1.pipe(new AppendTransformer({
                 n: 3
             }));
-            s2.matchFiles.add({
+            s2._matchFiles.add({
                 filename: 'a.js'
             });
             s2.flow().then(args => {
@@ -210,7 +210,7 @@ describe('stream', () => {
                     n: 4
                 }));
 
-                s3.matchFiles.add({
+                s3._matchFiles.add({
                     filename: 'a.js'
                 });
 
