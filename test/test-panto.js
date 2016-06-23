@@ -12,6 +12,7 @@
 'use strict';
 const panto = require('../');
 const assert = require('assert');
+const Transformer = require('panto-transformer');
 const {
     isFunction
 } = require('lodash');
@@ -86,6 +87,33 @@ describe('panto', () => {
             assert.ok(panto.pick('*-panto.js').end().swallow({
                 filename: 'test-panto.js'
             }), 'match "test-panto.js"');
+        });
+    });
+    describe('#build#clear#rest', () => {
+        it('should pick the rest', done => {
+            const restFiles = [];
+            
+            class RestTransformer extends Transformer{
+                _transfomer(file) {
+                    restFiles.push(file);
+                    return Promise.resolve(file);
+                }
+            }
+
+            panto.setOptions({
+                cwd: __dirname + '/..'
+            });
+            
+            panto.clear();
+
+            panto.rest().pipe(new RestTransformer()).end('rest');
+            panto.pick('**/*.js').end('*.js');
+            panto.pick('*.md').end('*.md');
+
+            panto.build().then(() => {
+                console.log(restFiles)
+                done();
+            });
         });
     });
     describe('#loadTransformer', () => {

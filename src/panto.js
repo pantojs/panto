@@ -179,6 +179,10 @@ class Panto extends EventEmitter {
         });
         return restStream;
     }
+    clear() {
+        this.streams.splice(0);
+        return this;
+    }
     build() {
         return this.getFiles().then(filenames => {
             return this._group(filenames);
