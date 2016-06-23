@@ -28,7 +28,17 @@ panto.build().then(() => {
 });
 ```
 
+Builtin transformers: `read`,`write`,`babel`,`filter`,`ignore`,`integrity`,`less`,`uglify`,`stamp`,`aspect`.
+
 Make your own _transformer_, just extend [panto-transformer](https://github.com/pantojs/panto-transformer), make sure _\_transform_ function returns a [Promise](https://promisesaplus.com/) object.
+
+```js
+panto.loadTransformer('foo') // panto-transformer-foo
+panto.loadTransformer('bar', require('my-bar-transformer'))
+
+panto.foo(...)
+panto.bar(...)
+```
 
 [npm-url]: https://npmjs.org/package/panto
 [downloads-image]: http://img.shields.io/npm/dm/panto.svg
