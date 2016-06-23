@@ -126,19 +126,21 @@ describe('stream', () => {
     describe('#flow', () => {
         it('should return origin if transformer is null', done => {
             const s = new Stream();
-            s.flow([{
+            s.matchFiles.add({
                 filename: 'a.js'
-            }]).then(flattenDeep).then(files => {
+            });
+            s.flow().then(flattenDeep).then(files => {
                 assert.deepEqual(files[0].filename, 'a.js');
                 done();
             });
         });
         it('transform using own transformer if no parent', done => {
             const s = new Stream(null, '', new TestTransformer());
-            s.flow([{
+            s.matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
-            }]).then((...files) => {
+            });
+            s.flow().then((...files) => {
                 const args = flattenDeep(files);
                 assert.ok(Array.isArray(args));
                 assert.ok(args[0].content, 'aa');
@@ -148,10 +150,13 @@ describe('stream', () => {
         });
         it('transform to the ancestor', done => {
             const s = new Stream(null, '', new TestTransformer());
-            s.pipe(new TestTransformer()).pipe(new TestTransformer()).flow([{
+
+            const s1 = s.pipe(new TestTransformer()).pipe(new TestTransformer());
+            s1.matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
-            }]).then((...files) => {
+            });
+            s1.flow().then((...files) => {
                 const args = flattenDeep(files);
                 assert.ok(Array.isArray(args));
                 assert.ok(args[0].content, 'aaaaaaaa');
@@ -161,28 +166,31 @@ describe('stream', () => {
         });
         it('should get multiple files', done => {
             const s = new Stream(null, '', new MultiplyTransformer());
-            s.flow([{
+            s.matchFiles.add({
                 filename: 'a.js',
                 content: 'a'
-            }]).then(files => {
+            });
+            s.flow().then(files => {
                 assert.deepEqual(files[0].content, 'a');
                 assert.deepEqual(files[1].content, 'aa');
                 done();
             });
         });
-        it('should support furcal', done => {
+        it('should support furcal&cache', done => {
+            let total = 0;
             class OneTransformer extends Transformer {
-                _transform() {
-                    return Promise.resolve({
+                _transform(file) {
+                    ++total;
+                    return Promise.resolve(extend(file, {
                         n: '1'
-                    });
+                    }));
                 }
             }
             class AppendTransformer extends Transformer {
-                _transform(arg) {
-                    return Promise.resolve({
-                        n: arg.n + '' + this.options.n
-                    });
+                _transform(file) {
+                    return Promise.resolve(extend(file, {
+                        n: file.n + '' + this.options.n
+                    }));
                 }
             }
             const s = new Stream(null, '', new OneTransformer());
@@ -192,18 +200,24 @@ describe('stream', () => {
             const s2 = s1.pipe(new AppendTransformer({
                 n: 3
             }));
-            s2.flow([{
-                n: 0
-            }]).then(args => {
+            s2.matchFiles.add({
+                filename: 'a.js'
+            });
+            s2.flow().then(args => {
                 assert.deepEqual(args[0].n, '123');
             }).then(() => {
-                return s1.pipe(new AppendTransformer({
+                const s3 = s1.pipe(new AppendTransformer({
                     n: 4
-                })).flow([{
-                    n: 0
-                }]);
+                }));
+
+                s3.matchFiles.add({
+                    filename: 'a.js'
+                });
+
+                return s3.flow();
             }).then(args => {
                 assert.deepEqual(args[0].n, '124');
+                assert.deepEqual(total, 1, 'stream caches');
                 done();
             });
         });

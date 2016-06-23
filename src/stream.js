@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016 yanni4night.com
+ * Copyright (C) 2016 pantojs.xyz
  * stream.js
  *
  * changelog
@@ -38,6 +38,12 @@ class Stream extends EventEmitter {
                 configurable: false,
                 enumerable: true
             },
+            matchFiles: {
+                value: new FileCollection(),
+                writable: false,
+                configurable: false,
+                enumerable: true
+            },
             cacheFiles: {
                 value: new FileCollection(),
                 writable: false,
@@ -62,6 +68,8 @@ class Stream extends EventEmitter {
         return minimatch(filename, this.pattern);
     }
     flow(files) {
+        files = files || this.matchFiles.values();
+
         if (this.parent) {
             return this.parent.flow(files).then(files => {
                 return this._flow(files);
@@ -111,6 +119,7 @@ class Stream extends EventEmitter {
     end(tag) {
         this.tag = tag;
         this.emit('end', this);
+        return this;
     }
 }
 

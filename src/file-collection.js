@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016 yanni4night.com
+ * Copyright (C) 2016 pantojs.xyz
  * file-collection.js
  *
  * changelog
@@ -12,6 +12,7 @@
 'use strict';
 
 const values = require('lodash/values');
+const extend = require('lodash/extend');
 
 class FileCollection {
     constructor(...filenames) {
@@ -31,6 +32,10 @@ class FileCollection {
             };
         });
 
+        return this;
+    }
+    wrap(fileCollection) {
+        extend(this.fileObjects, fileCollection.fileObjects);
         return this;
     }
     has(filename) {
@@ -65,17 +70,17 @@ class FileCollection {
     }
     update(diff) {
         switch (diff.cmd) {
-            case 'add':
-                this.add({
-                    filename: diff.filename
-                });
-                break;
-            case 'change':
-                this.refresh(diff.filename);
-                break;
-            case 'remove':
-                this.remove(diff.filename);
-                break;
+        case 'add':
+            this.add({
+                filename: diff.filename
+            });
+            break;
+        case 'change':
+            this.refresh(diff.filename);
+            break;
+        case 'remove':
+            this.remove(diff.filename);
+            break;
         }
     }
 }

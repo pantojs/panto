@@ -11,8 +11,6 @@
  */
 'use strict';
 
-
-
 const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
@@ -106,12 +104,6 @@ class Panto extends EventEmitter {
             },
             util: {
                 value: lodash,
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
-            fileCollectionGroup: {
-                value: [],
                 writable: false,
                 configurable: false,
                 enumerable: true
@@ -262,7 +254,7 @@ class Panto extends EventEmitter {
                     
                     this.log.debug(`${stream.tag}...start[${1+startStreamIdx}/${this.streams.length}]`);
                     
-                    stream.refreshCache(classifiedDiffs).flow(this.fileCollectionGroup[startStreamIdx].values())
+                    stream.refreshCache(classifiedDiffs).flow()
                         .then(
                             data => {
                                 let streamDiff = process.hrtime(streamStartTime);
@@ -299,23 +291,17 @@ class Panto extends EventEmitter {
                 if (this.streams[j].match(diffs[i].filename)) {
                     matched = true;
 
-                    this.fileCollectionGroup[j].update(diffs[i]);
+                    this.streams[j].matchFiles.update(diffs[i]);
                 }
             }
 
             if (!matched && this.restStreamIdx >= 0) {
-                this.fileCollectionGroup[this.restStreamIdx].update(diffs[i]);
+                this.streams[this.restStreamIdx].matchFiles.update(diffs[i]);
             }
         }
         return this._walkStream(classifiedDiffs);
     }
     _group(filenames) {
-        const group = this.fileCollectionGroup;
-
-        // Initialize group
-        for (let k = 0; k < this.streams.length; ++k) {
-            group[k] = new FileCollection();
-        }
 
         const leftGroup = new FileCollection();
 
@@ -327,11 +313,12 @@ class Panto extends EventEmitter {
             }; // Mutiple shares
 
             this.streams.forEach((stream, idx) => {
+                // empty pattern means it's a rest stream
                 if (!stream.pattern) {
                     this.restStreamIdx = idx;
                 } else if (stream.match(filename)) {
                     matched = true;
-                    group[idx].add(file);
+                    stream.matchFiles.add(file);
                 }
             });
 
@@ -341,7 +328,7 @@ class Panto extends EventEmitter {
         }
 
         if (this.restStreamIdx >= 0) {
-            group[this.restStreamIdx] = leftGroup;
+            this.streams[this.restStreamIdx].matchFiles.wrap(leftGroup);
         }
 
     }
