@@ -145,6 +145,7 @@ class Panto extends EventEmitter {
     }
     setOptions(opt) {
         extend(this.options, opt);
+        return this;
     }
     getFiles() {
         return new Promise((resolve, reject) => {
