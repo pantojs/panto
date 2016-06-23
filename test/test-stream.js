@@ -12,9 +12,9 @@
 'use strict';
 const assert = require('assert');
 const Stream = require('../src/stream');
-const Transformer = require('../src/transformer');
-const File = require('../src/file');
+const Transformer = require('panto-transformer-ignore');
 const flattenDeep = require('lodash/flattenDeep');
+const extend = require('lodash/extend');
 
 /*global describe,it*/
 class TestTransformer extends Transformer {
@@ -23,7 +23,9 @@ class TestTransformer extends Transformer {
             content
         } = file;
         return new Promise(resolve => {
-            resolve(file.update(content + content));
+            resolve(extend(file, {
+                content: content + content
+            }));
         });
     }
 }
@@ -35,8 +37,10 @@ class MultiplyTransformer extends Transformer {
         } = file;
         return new Promise(resolve => {
             resolve([
-                file.clone(),
-                file.clone().update(content + content)
+                extend({}, file),
+                extend({}, file, {
+                    content: content + content
+                })
             ]);
         });
     }
@@ -122,14 +126,19 @@ describe('stream', () => {
     describe('#flow', () => {
         it('should return origin if transformer is null', done => {
             const s = new Stream();
-            s.flow([new File('a.js')]).then(flattenDeep).then(files => {
+            s.flow([{
+                filename: 'a.js'
+            }]).then(flattenDeep).then(files => {
                 assert.deepEqual(files[0].filename, 'a.js');
                 done();
             });
         });
         it('transform using own transformer if no parent', done => {
             const s = new Stream(null, '', new TestTransformer());
-            s.flow([new File('a.js', 'a')]).then((...files) => {
+            s.flow([{
+                filename: 'a.js',
+                content: 'a'
+            }]).then((...files) => {
                 const args = flattenDeep(files);
                 assert.ok(Array.isArray(args));
                 assert.ok(args[0].content, 'aa');
@@ -139,8 +148,10 @@ describe('stream', () => {
         });
         it('transform to the ancestor', done => {
             const s = new Stream(null, '', new TestTransformer());
-            s.pipe(new TestTransformer()).pipe(new TestTransformer()).flow([new File('a.js',
-                'a')]).then((...files) => {
+            s.pipe(new TestTransformer()).pipe(new TestTransformer()).flow([{
+                filename: 'a.js',
+                content: 'a'
+            }]).then((...files) => {
                 const args = flattenDeep(files);
                 assert.ok(Array.isArray(args));
                 assert.ok(args[0].content, 'aaaaaaaa');
@@ -150,7 +161,10 @@ describe('stream', () => {
         });
         it('should get multiple files', done => {
             const s = new Stream(null, '', new MultiplyTransformer());
-            s.flow([new File('a.js', 'a')]).then(files => {
+            s.flow([{
+                filename: 'a.js',
+                content: 'a'
+            }]).then(files => {
                 assert.deepEqual(files[0].content, 'a');
                 assert.deepEqual(files[1].content, 'aa');
                 done();

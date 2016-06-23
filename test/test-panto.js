@@ -10,29 +10,28 @@
  * @since 1.0.0
  */
 'use strict';
-const Panto = require('../');
+const panto = require('../');
 const assert = require('assert');
 
 /*global describe,it*/
 describe('panto', () => {
     describe('#constructor', () => {
         it('should define frozen options', () => {
-            const p = new Panto();
-            assert.ok('options' in p);
+            assert.ok('options' in panto);
             assert.throws(() => {
-                p.options = 1;
+                panto.options = 1;
             });
             assert.throws(() => {
-                delete p.options;
+                delete panto.options;
             });
         });
     });
     describe('#getFiles', () => {
         it('should get the files', done => {
-            const p = new Panto({
+            panto.setOptions({
                 cwd: __dirname
             });
-            p.getFiles().then(filenames => {
+            panto.getFiles().then(filenames => {
                 assert.ok(filenames.indexOf('test-panto.js') > -1);
                 assert.ok(filenames.indexOf('test-stream.js') > -1);
                 done();
@@ -41,10 +40,10 @@ describe('panto', () => {
     });
     describe('#pick', () => {
         it('should pick the files', () => {
-            const p = new Panto({
+            panto.setOptions({
                 cwd: __dirname
             });
-            assert.ok(p.pick('*-panto.js').match('test-panto.js'));
+            assert.ok(panto.pick('*-panto.js').match('test-panto.js'));
         });
     });
 });
