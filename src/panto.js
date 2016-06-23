@@ -67,20 +67,19 @@ class Panto {
         };
 
         const R = name => {
-            return safeDirp(name).then(fpath => {
-                return new Promise((resolve, reject) => {
-                    fs.readFile(fpath, {
-                        encoding: isBinary(name) ? null : 'utf-8'
-                    }, (err, content) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(content);
-                        }
-                    });
+            return new Promise((resolve, reject) => {
+                fs.readFile(L(name), {
+                    encoding: isBinary(name) ? null : 'utf-8'
+                }, (err, content) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(content);
+                    }
                 });
             });
         };
+        
         const W = (name, content) => {
             return safeDirp(path.join(options.output, name)).then(fpath => {
                 return new Promise((resolve, reject) => {
@@ -254,11 +253,12 @@ class Panto {
                     resolve(flattenDeep(ret));
                 } else {
                     const stream = this.streams[startStreamIdx];
-                    stream.refreshCache(classifiedDiffs).flow(this.fileCollectionGroup[startStreamIdx].values()).then(
-                        data => {
-                            ret.push(data);
-                            walkStream();
-                        }).catch(reject);
+                    stream.refreshCache(classifiedDiffs).flow(this.fileCollectionGroup[startStreamIdx].values())
+                        .then(
+                            data => {
+                                ret.push(data);
+                                walkStream();
+                            }).catch(reject);
                 }
                 startStreamIdx += 1;
             };
@@ -268,14 +268,14 @@ class Panto {
     _onWatchFiles(...diffs) {
 
         const classifiedDiffs = {
-            remove:[],
-            add:[],
-            change:[]
+            remove: [],
+            add: [],
+            change: []
         };
 
         for (let i = 0; i < diffs.length; ++i) {
             let matched = false;
-            
+
             classifiedDiffs[diffs[i].cmd] = diffs[i].filename;
 
             for (let j = 0; j < this.streams.length; ++j) {
