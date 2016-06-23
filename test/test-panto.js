@@ -92,9 +92,9 @@ describe('panto', () => {
     describe('#build#clear#rest', () => {
         it('should pick the rest', done => {
             const restFiles = [];
-            
-            class RestTransformer extends Transformer{
-                _transfomer(file) {
+
+            class RestTransformer extends Transformer {
+                _transform(file) {
                     restFiles.push(file);
                     return Promise.resolve(file);
                 }
@@ -103,7 +103,7 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname + '/..'
             });
-            
+
             panto.clear();
 
             panto.rest().pipe(new RestTransformer()).end('rest');
