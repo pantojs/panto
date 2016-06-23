@@ -12,7 +12,7 @@
 'use strict';
 const assert = require('assert');
 const Stream = require('../src/stream');
-const Transformer = require('panto-transformer-ignore');
+const Transformer = require('panto-transformer');
 const flattenDeep = require('lodash/flattenDeep');
 const extend = require('lodash/extend');
 
@@ -110,7 +110,7 @@ describe('stream', () => {
 
         it('bubble up "end" event', done => {
             const s = new Stream();
-            const rs = s.pipe(new Transformer());
+            const rs = s.pipe(new Transformer()).pipe(new Transformer());
             s.on('end', () => {
                 done();
             });
@@ -167,6 +167,43 @@ describe('stream', () => {
             }]).then(files => {
                 assert.deepEqual(files[0].content, 'a');
                 assert.deepEqual(files[1].content, 'aa');
+                done();
+            });
+        });
+        it('should support furcal', done => {
+            class OneTransformer extends Transformer {
+                _transform() {
+                    return Promise.resolve({
+                        n: '1'
+                    });
+                }
+            }
+            class AppendTransformer extends Transformer {
+                _transform(arg) {
+                    return Promise.resolve({
+                        n: arg.n + '' + this.options.n
+                    });
+                }
+            }
+            const s = new Stream(null, '', new OneTransformer());
+            const s1 = s.pipe(new AppendTransformer({
+                n: 2
+            }));
+            const s2 = s1.pipe(new AppendTransformer({
+                n: 3
+            }));
+            s2.flow([{
+                n: 0
+            }]).then(args => {
+                assert.deepEqual(args[0].n, '123');
+            }).then(() => {
+                return s1.pipe(new AppendTransformer({
+                    n: 4
+                })).flow([{
+                    n: 0
+                }]);
+            }).then(args => {
+                assert.deepEqual(args[0].n, '124');
                 done();
             });
         });

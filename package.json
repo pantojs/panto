@@ -35,5 +35,7 @@
     "mkdirp": "^0.5.1",
     "panto-logger": "^0.1.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "panto-transformer": "^0.1.2"
+  }
 }
