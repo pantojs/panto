@@ -141,7 +141,9 @@ class Panto {
             file: {
                 value: {
                     read: R,
-                    write: W
+                    write: W,
+                    locate: L,
+                    mkdirp: safeDirp
                 },
                 writable: false,
                 configurable: false,
