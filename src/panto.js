@@ -11,26 +11,29 @@
  */
 'use strict';
 
-const glob = require('glob');
+
 
 const fs = require('fs');
-const chokidar = require('chokidar');
 const path = require('path');
-const mkdirp = require('mkdirp');
+const EventEmitter = require('events');
+
+const chokidar = require('chokidar');
+const glob = require('glob');
 const minimatch = require('minimatch');
-
+const mkdirp = require('mkdirp');
 const logger = require('panto-logger');
-
 const isString = require('lodash/isString');
 const camelCase = require('lodash/camelCase');
 const extend = require('lodash/extend');
 const lodash = require('lodash');
 const flattenDeep = require('lodash/flattenDeep');
+
 const Stream = require('./stream');
 const FileCollection = require('./file-collection');
 
-class Panto {
+class Panto extends EventEmitter{
     constructor() {
+        super();
         const defaultOpts = {
             cwd: process.cwd(),
             output: 'output',
@@ -79,7 +82,7 @@ class Panto {
                 });
             });
         };
-        
+
         const W = (name, content) => {
             return safeDirp(path.join(options.output, name)).then(fpath => {
                 return new Promise((resolve, reject) => {
@@ -131,18 +134,13 @@ class Panto {
                 configurable: false,
                 enumerable: true
             },
-            isBinary: {
-                value: isBinary,
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
             file: {
                 value: {
                     read: R,
                     write: W,
                     locate: L,
-                    mkdirp: safeDirp
+                    mkdirp: safeDirp,
+                    isBinary
                 },
                 writable: false,
                 configurable: false,
@@ -150,6 +148,8 @@ class Panto {
             }
         });
         Object.freeze(this.file);
+        Object.freeze(this.log);
+        Object.freeze(this.util);
     }
     setOptions(opt) {
         extend(this.options, opt);
@@ -263,6 +263,9 @@ class Panto {
                 startStreamIdx += 1;
             };
             walkStream();
+        }).then(files => {
+            this.emit('complete', files);
+            return files;
         });
     }
     _onWatchFiles(...diffs) {

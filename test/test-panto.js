@@ -12,18 +12,56 @@
 'use strict';
 const panto = require('../');
 const assert = require('assert');
+const {
+    isFunction
+} = require('lodash');
 
 /*global describe,it*/
 describe('panto', () => {
     describe('#constructor', () => {
-        it('should define frozen options', () => {
-            assert.ok('options' in panto);
+        it('should define frozen "options"', () => {
+            assert.ok('options' in panto, '"options" in panto');
+            assert.ok('cwd' in panto.options, '"cwd" in panto.options');
+            assert.ok('output' in panto.options, '"cwd" in panto.output');
+            assert.ok('binary_resource' in panto.options, '"cwd" in panto.binary_resource');
             assert.throws(() => {
                 panto.options = 1;
-            });
+            }, 'set "panto.options"');
             assert.throws(() => {
                 delete panto.options;
+            }, 'delete "panto.options"');
+        });
+        it('should define frozen "file"', () => {
+            assert.ok('file' in panto);
+            assert.ok(isFunction(panto.file.read), '"panto.file.read" is function');
+            assert.ok(isFunction(panto.file.write), '"panto.file.write" is function');
+            assert.ok(isFunction(panto.file.locate), '"panto.file.locate" is function');
+            assert.ok(isFunction(panto.file.isBinary), '"panto.file.isBinary" is function');
+            assert.ok(Object.isFrozen(panto.file), '"panto.file" is frozen');
+            assert.throws(() => {
+                panto.file = 1;
+            }, 'set "panto.file"');
+            assert.throws(() => {
+                delete panto.file;
+            }, 'delete "panto.file"');
+        });
+        it('should define frozen "util"', () => {
+            assert.ok('util' in panto, '"util" in panto');
+            assert.ok(Object.isFrozen(panto.util), '"panto.util" is frozen');
+            assert.throws(() => {
+                panto.util = 1;
+            }, 'set "panto.util"');
+            assert.throws(() => {
+                delete panto.util;
+            }, 'delete "panto.util"');
+        });
+    });
+    describe('#setOptions', () => {
+        it('should set to the options', () => {
+            panto.setOptions({
+                cwd: 'xyz'
             });
+            assert.deepEqual(panto.options.cwd, 'xyz', '"panto.options.cwd" equals "xyz"');
         });
     });
     describe('#getFiles', () => {
@@ -32,8 +70,10 @@ describe('panto', () => {
                 cwd: __dirname
             });
             panto.getFiles().then(filenames => {
-                assert.ok(filenames.indexOf('test-panto.js') > -1);
-                assert.ok(filenames.indexOf('test-stream.js') > -1);
+                assert.ok(filenames.indexOf('test-panto.js') > -1,
+                    'match "test-panto.js"');
+                assert.ok(filenames.indexOf('test-stream.js') > -1,
+                    'match "test-stream.js"');
                 done();
             });
         });
@@ -43,7 +83,15 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname
             });
-            assert.ok(panto.pick('*-panto.js').match('test-panto.js'));
+            assert.ok(panto.pick('*-panto.js').match('test-panto.js'), 'match "test-panto.js"');
+        });
+    });
+    describe('#loadTransformer', () => {
+        it('should load the Transformer', () => {
+            class Foo {}
+            panto.loadTransformer('foo', Foo);
+            assert.ok(isFunction(panto.foo), '"panto.foo" is function');
+            assert.ok(panto.foo() instanceof Foo, '"panto.foo()" is an instance of "Foo"');
         });
     });
 });
