@@ -108,7 +108,7 @@ class Panto extends EventEmitter {
                 configurable: false,
                 enumerable: true
             },
-            streams: {
+            _streams: {
                 value: [],
                 writable: false,
                 configurable: false,
@@ -168,19 +168,19 @@ class Panto extends EventEmitter {
         }
         const stream = new Stream(null, pattern);
         stream.on('end', leaf => {
-            this.streams.push(leaf);
+            this._streams.push(leaf);
         });
         return stream;
     }
     rest() {
         const restStream = new Stream(null, null);
         restStream.on('end', leaf => {
-            this.streams.push(leaf);
+            this._streams.push(leaf);
         });
         return restStream;
     }
     clear() {
-        this.streams.splice(0);
+        this._streams.splice(0);
         return this;
     }
     build() {
@@ -246,7 +246,7 @@ class Panto extends EventEmitter {
             const startTime = process.hrtime();
             let startStreamIdx = 0;
             const walkStream = () => {
-                if (startStreamIdx === this.streams.length) {
+                if (startStreamIdx === this._streams.length) {
                     const diff = process.hrtime(startTime);
                     const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
 
@@ -254,10 +254,10 @@ class Panto extends EventEmitter {
 
                     resolve(flattenDeep(ret));
                 } else {
-                    const stream = this.streams[startStreamIdx];
+                    const stream = this._streams[startStreamIdx];
                     let streamStartTime = process.hrtime();
 
-                    this.log.debug(`${stream.tag}...start[${1+startStreamIdx}/${this.streams.length}]`);
+                    this.log.debug(`${stream.tag}...start[${1+startStreamIdx}/${this._streams.length}]`);
 
                     stream.flow()
                         .then(
@@ -284,14 +284,14 @@ class Panto extends EventEmitter {
         for (let i = 0; i < diffs.length; ++i) {
             let matched = false;
 
-            for (let j = 0; j < this.streams.length; ++j) {
-                if (this.streams[j].fix(diffs[i])) {
+            for (let j = 0; j < this._streams.length; ++j) {
+                if (this._streams[j].fix(diffs[i])) {
                     matched = true;
                 }
             }
 
             if (!matched && this._restStreamIdx >= 0) {
-                this.streams[this._restStreamIdx].fix(diffs[i], true);
+                this._streams[this._restStreamIdx].fix(diffs[i], true);
             }
         }
         return this._walkStream();
@@ -307,7 +307,7 @@ class Panto extends EventEmitter {
                 filename
             }; // Mutiple shares
 
-            this.streams.forEach((stream, idx) => {
+            this._streams.forEach((stream, idx) => {
                 if (stream.isRest()) {
                     this._restStreamIdx = idx;
                 } else if (stream.swallow(file)) {
@@ -321,7 +321,7 @@ class Panto extends EventEmitter {
         }
 
         if (this._restStreamIdx >= 0) {
-            this.streams[this._restStreamIdx].copy(leftGroup);
+            this._streams[this._restStreamIdx].copy(leftGroup);
         }
 
     }

@@ -39,22 +39,18 @@ describe('panto', () => {
             assert.ok(isFunction(panto.file.locate), '"panto.file.locate" is function');
             assert.ok(isFunction(panto.file.isBinary), '"panto.file.isBinary" is function');
             assert.ok(Object.isFrozen(panto.file), '"panto.file" is frozen');
-            assert.throws(() => {
-                panto.file = 1;
-            }, 'set "panto.file"');
-            assert.throws(() => {
-                delete panto.file;
-            }, 'delete "panto.file"');
         });
         it('should define frozen "util"', () => {
             assert.ok('util' in panto, '"util" in panto');
             assert.ok(Object.isFrozen(panto.util), '"panto.util" is frozen');
-            assert.throws(() => {
-                panto.util = 1;
-            }, 'set "panto.util"');
-            assert.throws(() => {
-                delete panto.util;
-            }, 'delete "panto.util"');
+        });
+        it('should define frozen "_streams"', () => {
+            assert.ok('_streams' in panto, '"_streams" in panto');
+            assert.ok(Object.isFrozen(panto._streams), '"panto._streams" is frozen');
+        });
+        it('should define sealed "_restStreamIdx"', () => {
+            assert.ok('_restStreamIdx' in panto, '"_restStreamIdx" in panto');
+            assert.ok(Object.isSealed(panto._streams), '"panto._restStreamIdx" is sealed');
         });
     });
     describe('#setOptions', () => {
@@ -113,7 +109,7 @@ describe('panto', () => {
 
             panto.clear();
 
-            assert.deepEqual(panto.streams.length, 0, 'steams cleared');
+            assert.deepEqual(panto._streams.length, 0, 'steams cleared');
 
             panto.rest().pipe(new RestTransformer()).end('rest');
             panto.pick('**/*.js').pipe(new JsTransformer()).end('*.js');
