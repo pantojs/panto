@@ -99,6 +99,13 @@ describe('panto', () => {
                     return Promise.resolve(file);
                 }
             }
+            const jsFiles = [];
+            class JsTransformer extends Transformer {
+                _transform(file) {
+                    jsFiles.push(file);
+                    return Promise.resolve(file);
+                }
+            }
 
             panto.setOptions({
                 cwd: __dirname + '/..'
@@ -106,12 +113,19 @@ describe('panto', () => {
 
             panto.clear();
 
+            assert.deepEqual(panto.streams.length, 0, 'steams cleared');
+
             panto.rest().pipe(new RestTransformer()).end('rest');
-            panto.pick('**/*.js').end('*.js');
-            panto.pick('*.md').end('*.md');
+            panto.pick('**/*.js').pipe(new JsTransformer()).end('*.js');
+            panto.pick('**/*.{md,json}').end('*.md');
 
             panto.build().then(() => {
-                console.log(restFiles)
+                assert.ok(restFiles.some(file => file.filename === 'LICENSE'),
+                    '"LICENSE" rested');
+                assert.ok(jsFiles.some(file => file.filename === 'index.js'),
+                    '"index.js" picked');
+                assert.ok(jsFiles.some(file => file.filename === 'test/test-panto.js'),
+                    '"test/test-panto.js" picked');
                 done();
             });
         });
