@@ -253,6 +253,40 @@ describe('stream', () => {
             });
         });
     });
+    describe('#fix', () => {
+        it('should clear cache', done => {
+            const s = new Stream(null, '*.js', new TestTransformer());
+            const s1 = s.pipe(new TestTransformer());
+            const s2 = s1.pipe(new TestTransformer()).end('s2');
+
+            s2._matchFiles.add({
+                filename: 'a.js',
+                content: 'a'
+            });
+
+            s2.flow().then(() => {
+                assert.deepEqual(s2._matchFiles.get('a.js').content, 'aaaaaaaa',
+                    'set content to "aaaaaaaa"');
+                assert.ok(s._cacheFiles.has('a.js'), 'cached in s');
+                assert.ok(s1._cacheFiles.has('a.js'), 'cached in s1');
+                assert.ok(s2._cacheFiles.has('a.js'), 'cached in s2');
+
+                s2.fix({
+                    cmd: 'change',
+                    filename: 'a.js'
+                });
+
+                assert.deepEqual(s2._matchFiles.get('a.js').content, null,
+                    'set content to null');
+                assert.ok(!s2._cacheFiles.has('a.js'), 'clear cache in s2');
+                assert.ok(!s1._cacheFiles.has('a.js'), 'clear cache in s1');
+                assert.ok(!s._cacheFiles.has('a.js'), 'clear cache in s');
+
+            }).then(() => {
+                done();
+            });
+        });
+    });
     describe('#end', () => {
         it('should set the tag', () => {
             const s = new Stream();

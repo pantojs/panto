@@ -104,7 +104,12 @@ class Stream extends EventEmitter {
             this._cacheFiles.remove(diff.filename);
         }
 
+        if (this._parent) {
+            this._parent.fix(diff, force);
+        }
+
         if (this._matchFiles && (force || minimatch(diff.filename, this._pattern))) {
+            // clear content
             this._matchFiles.update(diff);
 
             return true;
