@@ -16,6 +16,7 @@ const EventEmitter = require('events');
 const flattenDeep = require('lodash/flattenDeep');
 const extend = require('lodash/extend');
 
+/** Class representing a stream. */
 class Stream extends EventEmitter {
     constructor(parent, pattern, transformer) {
         super();
@@ -48,6 +49,14 @@ class Stream extends EventEmitter {
 
         this.tag = '';
     }
+    /**
+     * Create a new child stream with transformer.
+     *
+     * Child's "end" event will fire parent too.
+     * 
+     * @param  {Transformer} transformer
+     * @return {Stream} The new stream
+     */
     pipe(transformer) {
         const child = new Stream(this, this._pattern, transformer);
         child.on('end', leaf => {
@@ -58,7 +67,7 @@ class Stream extends EventEmitter {
     /**
      * If it's a rest stream.
      *
-     * Rest stream will add the files rest.
+     * Rest stream will add the files rested.
      * 
      * @return {Boolean}
      */
@@ -107,12 +116,18 @@ class Stream extends EventEmitter {
      * the added file collection.
      * 
      * @param  {FileCollection} fileCollection
-     * @return {stream} this
+     * @return {Stream} this
      */
     copy(fileCollection) {
         this._matchFiles.wrap(fileCollection);
         return this;
     }
+    /**
+     * Flow the files, if has parent, parent flows first.
+     * 
+     * @param  {Array} files 
+     * @return {Promise}
+     */
     flow(files) {
         files = files || this._matchFiles.values();
 
@@ -124,6 +139,12 @@ class Stream extends EventEmitter {
             return this._flow(files);
         }
     }
+    /**
+     * Flow the files myself. Use cache is possible.
+     * 
+     * @param  {Array}  files
+     * @return {Promise}
+     */
     _flow(files = []) {
         const tasks = files.map(file => {
             if (this._cacheFiles.has(file.filename)) {
@@ -150,7 +171,7 @@ class Stream extends EventEmitter {
      * Fire an end event.
      * 
      * @param  {string} tag  This tag for friendly log
-     * @return {stream} this
+     * @return {Stream} this
      */
     end(tag) {
         this.tag = tag;

@@ -29,6 +29,7 @@ const flattenDeep = require('lodash/flattenDeep');
 const Stream = require('./stream');
 const FileCollection = require('./file-collection');
 
+/**  */
 class Panto extends EventEmitter {
     constructor() {
         super();
@@ -118,7 +119,7 @@ class Panto extends EventEmitter {
             _restStreamIdx: {
                 set(idx) {
                     if (isNaN(idx)) {
-                        throw new Error('"_restStreamIdx" must be a number')
+                        throw new Error('"_restStreamIdx" must be a number');
                     }
                     _restStreamIdx = +idx;
                 },
@@ -151,10 +152,21 @@ class Panto extends EventEmitter {
         Object.freeze(this.log);
         Object.freeze(this.util);
     }
+    /**
+     * Extend options.
+     * 
+     * @param {object} opt options to extend
+     * @return {Panto} this
+     */
     setOptions(opt) {
         extend(this.options, opt);
         return this;
     }
+    /**
+     * Search all the files in "cwd" option.
+     * 
+     * @return {Promise}
+     */
     getFiles() {
         return new Promise((resolve, reject) => {
             glob('**/*', {
@@ -170,6 +182,12 @@ class Panto extends EventEmitter {
             });
         });
     }
+    /**
+     * Select some files matched the pattern.
+     * 
+     * @param  {string} pattern
+     * @return {Stream}
+     */
     pick(pattern) {
         if (!pattern || !isString(pattern)) {
             throw new Error(`A string pattern is required to pick up some files`);
@@ -180,6 +198,11 @@ class Panto extends EventEmitter {
         });
         return stream;
     }
+    /**
+     * Get the files not selected.
+     * 
+     * @return {Stream}
+     */
     rest() {
         const restStream = new Stream(null, null);
         restStream.on('end', leaf => {
@@ -187,10 +210,26 @@ class Panto extends EventEmitter {
         });
         return restStream;
     }
+    /**
+     * Clear all the selected/stream.
+     * 
+     * @return {Panto} this
+     */
     clear() {
         this._streams.splice(0);
         return this;
     }
+    /**
+     * Do the build, including "getFiles",
+     * "_group" and "_walkStream".
+     *
+     * For example,
+     * <code>
+     * panto.build().catch(...)
+     * </code>
+     * 
+     * @return {Promise}
+     */
     build() {
         return this.getFiles().then(filenames => {
             return this._group(filenames);
@@ -198,6 +237,23 @@ class Panto extends EventEmitter {
             return this._walkStream();
         });
     }
+    /**
+     * Load a transformer as a shortcut.
+     *
+     * If the second argument is not present,
+     * require("panto-transformer-${name}") as
+     * the transformer class.
+     *
+     * For example,
+     * <code>
+     * panto.loadTransformer('foo')
+     * panto.loadTransformer('bar', BarTransformer)
+     * </code>
+     * 
+     * @param  {string} name transformer name
+     * @param  {Class|undefiend} transformer
+     * @return {Panto} this
+     */
     loadTransformer(name, transformer) {
         if (!transformer) {
             let T = require(`panto-transformer-${name.toLowerCase()}`);
@@ -209,7 +265,21 @@ class Panto extends EventEmitter {
                 return new transformer(opts);
             };
         }
+        return this;
     }
+    /**
+     * Watch cwd for any file change.
+     * It should be after build.
+     *
+     * For example,
+     * <code>
+     * panto.build().then(() => {
+     *     panto.watch();
+     * }).catch(...)
+     * </code>
+     * 
+     * @return {Promise}
+     */
     watch() {
         const {
             cwd,
@@ -306,7 +376,7 @@ class Panto extends EventEmitter {
     }
     _group(filenames) {
 
-        const leftGroup = new FileCollection();
+        const restGroup = new FileCollection();
 
         for (let i = 0; i < filenames.length; ++i) {
             let filename = filenames[i];
@@ -324,17 +394,22 @@ class Panto extends EventEmitter {
             });
 
             if (!matched) {
-                leftGroup.add(file);
+                restGroup.add(file);
             }
         }
 
         if (this._restStreamIdx >= 0) {
-            this._streams[this._restStreamIdx].copy(leftGroup);
+            this._streams[this._restStreamIdx].copy(restGroup);
         }
 
     }
 }
-
+/**
+ * Global Panto single instance.
+ * 
+ * @type {Panto}
+ * @global
+ */
 const panto = new Panto();
 
 Object.defineProperty(global, 'panto', {

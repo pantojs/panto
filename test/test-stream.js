@@ -120,8 +120,12 @@ describe('stream', () => {
     describe('#swallow', () => {
         it('should swallow the file', () => {
             const s = new Stream(null, '*.jpg').end();
-            assert.ok(s.swallow({filename:'a.jpg'}));
-            assert.ok(s.swallow({filename:'a.bmp'}, true));
+            assert.ok(s.swallow({
+                filename: 'a.jpg'
+            }));
+            assert.ok(s.swallow({
+                filename: 'a.bmp'
+            }, true));
             assert.ok(s._matchFiles.has('a.jpg'));
             assert.ok(s._matchFiles.has('a.bmp'));
         });
@@ -176,6 +180,30 @@ describe('stream', () => {
             s.flow().then(files => {
                 assert.deepEqual(files[0].content, 'a');
                 assert.deepEqual(files[1].content, 'aa');
+                done();
+            });
+        });
+        it('should support null/undefined/[]', done => {
+            class EmptyTransformer extends Transformer {
+                _transform() {
+                    return Promise.resolve(this.options.data);
+                }
+            }
+            const s = new Stream().pipe(new EmptyTransformer({
+                data: undefined
+            })).pipe(new EmptyTransformer({
+                data: []
+            })).pipe(new EmptyTransformer({
+                data: null
+            })).end();
+
+            s._matchFiles.add({
+                filename: 'a.js',
+                content: 'a'
+            });
+
+            s.flow().then(files => {
+                assert.deepEqual(files, []);
                 done();
             });
         });
