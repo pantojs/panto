@@ -95,6 +95,7 @@ class Panto extends EventEmitter {
             });
         };
 
+        let _restStreamIdx = -1;
         Object.defineProperties(this, {
             log: {
                 value: logger,
@@ -112,13 +113,20 @@ class Panto extends EventEmitter {
                 value: [],
                 writable: false,
                 configurable: false,
-                enumerable: true
+                enumerable: false
             },
             _restStreamIdx: {
-                value: -1,
-                writable: true,
+                set(idx) {
+                    if (isNaN(idx)) {
+                        throw new Error('"_restStreamIdx" must be a number')
+                    }
+                    _restStreamIdx = +idx;
+                },
+                get() {
+                    return _restStreamIdx;
+                },
                 configurable: false,
-                enumerable: true
+                enumerable: false
             },
             options: {
                 value: options,

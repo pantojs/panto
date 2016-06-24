@@ -44,13 +44,26 @@ describe('panto', () => {
             assert.ok('util' in panto, '"util" in panto');
             assert.ok(Object.isFrozen(panto.util), '"panto.util" is frozen');
         });
-        it('should define frozen "_streams"', () => {
+        it('should define "_streams"', () => {
             assert.ok('_streams' in panto, '"_streams" in panto');
-            assert.ok(Object.isFrozen(panto._streams), '"panto._streams" is frozen');
+            assert.ok(!Object.propertyIsEnumerable(panto, '_streams'));
+
+            assert.throws(() => {
+                panto._streams = 1;
+            }, 'set "panto._streams"');
+            assert.throws(() => {
+                delete panto._streams;
+            }, 'delete "panto._streams"');
         });
-        it('should define sealed "_restStreamIdx"', () => {
+        it('should define "_restStreamIdx"', () => {
             assert.ok('_restStreamIdx' in panto, '"_restStreamIdx" in panto');
-            assert.ok(Object.isSealed(panto._streams), '"panto._restStreamIdx" is sealed');
+            assert.ok(!Object.propertyIsEnumerable(panto, '_restStreamIdx'));
+            assert.throws(() => {
+                panto._restStreamIdx = "op1";
+            }, 'set "panto._restStreamIdx" a NaN');
+            assert.throws(() => {
+                delete panto._restStreamIdx;
+            }, 'delete _restStreamIdx');
         });
     });
     describe('#setOptions', () => {
