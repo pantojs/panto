@@ -254,6 +254,26 @@ describe('stream', () => {
         });
     });
     describe('#fix', () => {
+        it('should does nothing to rest stream', () => {
+            const s = new Stream(null, null).end('rest');
+            s._matchFiles.add({
+                filename: 'a.js',
+                content: 'a'
+            });
+
+            s.fix({
+                cmd: 'change',
+                filename: 'a.js'
+            });
+            assert.ok(s._matchFiles.has('a.js'),
+                'fixing does nothing to rest stream if not forced');
+            s.fix({
+                cmd: 'change',
+                filename: 'a.js'
+            }, true);
+            assert.deepEqual(s._matchFiles.get('a.js').content, null,
+                'content is null after forcing fix');
+        });
         it('should clear cache', done => {
             const s = new Stream(null, '*.js', new TestTransformer());
             const s1 = s.pipe(new TestTransformer());
