@@ -5,9 +5,10 @@
  * changelog
  * 2016-06-21[18:46:42]:revised
  * 2016-06-26[12:17:28]:add match to panto.file
+ * 2016-06-26[17:36:31]:dependencies map
  *
  * @author yanni4night@gmail.com
- * @version 0.0.9
+ * @version 0.0.10
  * @since 0.0.1
  */
 'use strict';
@@ -30,7 +31,7 @@ const flattenDeep = require('lodash/flattenDeep');
 const Stream = require('./stream');
 const FileCollection = require('./file-collection');
 
-/**  */
+/** Class representing a panto */
 class Panto extends EventEmitter {
     constructor() {
         super();
@@ -98,6 +99,7 @@ class Panto extends EventEmitter {
         };
 
         let _restStreamIdx = -1;
+        
         Object.defineProperties(this, {
             log: {
                 value: logger,
@@ -113,6 +115,12 @@ class Panto extends EventEmitter {
             },
             _streams: {
                 value: [],
+                writable: false,
+                configurable: false,
+                enumerable: false
+            },
+            _dependencies: {
+                value: {},
                 writable: false,
                 configurable: false,
                 enumerable: false
@@ -150,6 +158,7 @@ class Panto extends EventEmitter {
                 enumerable: true
             }
         });
+
         Object.freeze(this.file);
         Object.freeze(this.log);
         Object.freeze(this.util);
@@ -183,6 +192,59 @@ class Panto extends EventEmitter {
                 }
             });
         });
+    }
+    /**
+     * Report a dependency.
+     *
+     * Panto mantains a MAP, each key-value pair
+     * represents a file and the files it depends on.
+     * The MAP is very important when building incremental
+     * files, aka change/remove/add. When a file change, it 
+     * and the files depend on it all have to be re-built.
+     *
+     * Panto does not care how a file depends or be depended
+     * on another file. It is reported by the transformers.
+     *
+     * For example,
+     *
+     * <code>
+     * class CssUrlTransformer extends Transformer {
+     *     _transform(file) {
+     *         return new Promise(resolve => {
+     *             // "url(...)" analysis
+     *             panto.reportDependencies(file.filename, 'src/img/bg.png');
+     *             resolve(file);
+     *         });
+     *     }
+     * }
+     * </code>
+     * 
+     * @param  {string} filename The current files
+     * @param  {Array|string} dependencies The files that current file depends on
+     * @return {Panto} this
+     */
+    reportDependencies(filename, dependencies) {
+        if (!filename || !dependencies) {
+            return this;
+        }
+
+        let deps = this._dependencies[filename];
+
+        if (!deps) {
+            this._dependencies[filename] = deps = {};
+        }
+
+        if (!Array.isArray(dependencies)) {
+            dependencies = [dependencies];
+        }
+
+        dependencies.forEach(dep => {
+            if (!deps[dep]) {
+                deps[dep] = 1; // any value truely
+            }
+        });
+
+        return this;
     }
     /**
      * Select some files matched the pattern.
@@ -219,6 +281,11 @@ class Panto extends EventEmitter {
      */
     clear() {
         this._streams.splice(0);
+
+        Object.keys(this._dependencies).forEach(key => {
+            delete this._dependencies[key];
+        });
+
         return this;
     }
     /**
@@ -325,6 +392,7 @@ class Panto extends EventEmitter {
             let ret = [];
             const startTime = process.hrtime();
             let startStreamIdx = 0;
+            
             const walkStream = () => {
                 if (startStreamIdx === this._streams.length) {
                     const diff = process.hrtime(startTime);
@@ -357,21 +425,59 @@ class Panto extends EventEmitter {
         }).then(files => {
             this.emit('complete', files);
             return files;
+        }).catch(err => {
+            this.emit('error', err);
         });
     }
-    _onWatchFiles(...diffs) {
+    _resolveAllChangedFiles(...diffs) {
+        const filesShouldBeTransformedAgain = diffs.slice();
+
+        const findDependencies = filename => {
+            for (let dfn in this._dependencies) {
+                if (this._dependencies[dfn][filename]) {
+                    if (!filesShouldBeTransformedAgain.some(f => (f.filename === dfn))) {
+                        filesShouldBeTransformedAgain.push({
+                            filename: dfn,
+                            cmd: 'change'
+                        });
+                    }
+                    findDependencies(dfn);
+                }
+            }
+        };
 
         for (let i = 0; i < diffs.length; ++i) {
+            let {
+                filename,
+                cmd
+            } = diffs[i];
+
+            if ('remove' === cmd) {
+                delete this._dependencies[filename];
+            }
+
+            findDependencies(filename);
+        }
+        return filesShouldBeTransformedAgain;
+    }
+    _onWatchFiles(...diffs) {
+        // Find all the files should be transformed again
+        const filesShouldBeTransformedAgain = this._resolveAllChangedFiles(...diffs);
+
+        this.log.data('The following files will be transformed again:\n', filesShouldBeTransformedAgain.map(f => f.filename)
+            .join('\n'));
+        
+        for (let i = 0; i < filesShouldBeTransformedAgain.length; ++i) {
             let matched = false;
 
             for (let j = 0; j < this._streams.length; ++j) {
-                if (this._streams[j].fix(diffs[i])) {
+                if (this._streams[j].fix(filesShouldBeTransformedAgain[i])) {
                     matched = true;
                 }
             }
 
             if (!matched && this._restStreamIdx >= 0) {
-                this._streams[this._restStreamIdx].fix(diffs[i], true);
+                this._streams[this._restStreamIdx].fix(filesShouldBeTransformedAgain[i], true);
             }
         }
         return this._walkStream();
