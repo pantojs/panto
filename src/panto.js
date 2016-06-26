@@ -26,7 +26,6 @@ const isString = require('lodash/isString');
 const camelCase = require('lodash/camelCase');
 const extend = require('lodash/extend');
 const lodash = require('lodash');
-const uniq = require('lodash/uniq');
 const flattenDeep = require('lodash/flattenDeep');
 
 const Stream = require('./stream');
@@ -230,7 +229,7 @@ class Panto extends EventEmitter {
             return this;
         }
 
-        this._dependencies.add(filename, ...dependencies)
+        this._dependencies.add(filename, ...dependencies);
 
         return this;
     }

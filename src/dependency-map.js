@@ -50,7 +50,7 @@ class DependencyMap {
         const result = [];
         keys.map(key => {
             this.resolveKey(key, result);
-        })
+        });
         return result;
     }
     resolveKey(key, result) {
