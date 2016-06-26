@@ -56,16 +56,6 @@ describe('panto', () => {
                 delete panto._streams;
             }, 'delete "panto._streams"');
         });
-        it('should define "_restStreamIdx"', () => {
-            assert.ok('_restStreamIdx' in panto, '"_restStreamIdx" in panto');
-            assert.ok(!Object.propertyIsEnumerable(panto, '_restStreamIdx'));
-            assert.throws(() => {
-                panto._restStreamIdx = "op1";
-            }, 'set "panto._restStreamIdx" a NaN');
-            assert.throws(() => {
-                delete panto._restStreamIdx;
-            }, 'delete _restStreamIdx');
-        });
     });
     describe('#setOptions', () => {
         it('should set to the options', () => {
@@ -157,8 +147,9 @@ describe('panto', () => {
                     '"index.js" picked');
                 assert.ok(jsFiles.some(file => file.filename === 'test/test-panto.js'),
                     '"test/test-panto.js" picked');
+            }).then(()=>{
                 done();
-            });
+            }).catch(e=>{console.error(e)});
         });
     });
     describe('#loadTransformer', () => {

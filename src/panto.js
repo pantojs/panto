@@ -98,8 +98,6 @@ class Panto extends EventEmitter {
                 });
             });
         };
-
-        let _restStreamIdx = -1;
         
         Object.defineProperties(this, {
             log: {
@@ -123,19 +121,6 @@ class Panto extends EventEmitter {
             _dependencies: {
                 value: new DependencyMap(),
                 writable: false,
-                configurable: false,
-                enumerable: false
-            },
-            _restStreamIdx: {
-                set(idx) {
-                    if (isNaN(idx)) {
-                        throw new Error('"_restStreamIdx" must be a number');
-                    }
-                    _restStreamIdx = +idx;
-                },
-                get() {
-                    return _restStreamIdx;
-                },
                 configurable: false,
                 enumerable: false
             },
@@ -273,24 +258,6 @@ class Panto extends EventEmitter {
         return this;
     }
     /**
-     * Do the build, including "getFiles",
-     * "_group" and "_walkStream".
-     *
-     * For example,
-     * <code>
-     * panto.build().catch(...)
-     * </code>
-     * 
-     * @return {Promise}
-     */
-    build() {
-        return this.getFiles().then(filenames => {
-            return this._group(filenames);
-        }).then(() => {
-            return this._walkStream();
-        });
-    }
-    /**
      * Load a transformer as a shortcut.
      *
      * If the second argument is not present,
@@ -319,6 +286,25 @@ class Panto extends EventEmitter {
             };
         }
         return this;
+    }
+    /**
+     * Do the build, including "getFiles",
+     * "onFileDiff" and "walkStream".
+     *
+     * For example,
+     * <code>
+     * panto.build().catch(...)
+     * </code>
+     * 
+     * @return {Promise}
+     */
+    build() {
+        return this.getFiles().then(filenames => {
+            return this.onFileDiff(...filenames.map(filename => ({
+                filename,
+                cmd: 'add'
+            })));
+        });
     }
     /**
      * Watch cwd for any file change.
@@ -350,34 +336,34 @@ class Panto extends EventEmitter {
         });
         watcher.on('add', path => {
                 this.log.info(`File ${path} has been added`);
-                this._onWatchFiles({
+                this.onFileDiff({
                     filename: path,
                     cmd: 'add'
                 });
             })
             .on('change', path => {
                 this.log.info(`File ${path} has been changed`);
-                this._onWatchFiles({
+                this.onFileDiff({
                     filename: path,
                     cmd: 'change'
                 });
             })
             .on('unlink', path => {
                 this.log.info(`File ${path} has been removed`);
-                this._onWatchFiles({
+                this.onFileDiff({
                     filename: path,
                     cmd: 'remove'
                 });
             });
 
     }
-    _walkStream() {
+    walkStream() {
         return new Promise((resolve, reject) => {
             let ret = [];
             const startTime = process.hrtime();
             let startStreamIdx = 0;
             
-            const walkStream = () => {
+            const _walkStream = () => {
                 if (startStreamIdx === this._streams.length) {
                     const diff = process.hrtime(startTime);
                     const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
@@ -400,12 +386,12 @@ class Panto extends EventEmitter {
                                 this.log.debug(`${stream.tag}...complete in ${streamMs}ms`);
 
                                 ret.push(data);
-                                walkStream();
+                                _walkStream();
                             }).catch(reject);
                 }
                 startStreamIdx += 1;
             };
-            walkStream();
+            _walkStream();
         }).then(files => {
             this.emit('complete', files);
             return files;
@@ -413,7 +399,7 @@ class Panto extends EventEmitter {
             this.emit('error', err);
         });
     }
-    _onWatchFiles(...diffs) {
+    onFileDiff(...diffs) {
         const changedFileNames = diffs.map(f => f.filename);
         const dependencyFileNames = this._dependencies.resolve(...changedFileNames);
         
@@ -423,8 +409,18 @@ class Panto extends EventEmitter {
             cmd: 'change'
         })));
 
-        this.log.data('Incremental files:\n', dependencyFileNames.concat(changedFileNames)
-            .join('\n'));
+        let allFileNames = dependencyFileNames.concat(changedFileNames);
+        let allFileNamesMessage;
+        if (allFileNames.length > 10) {
+            allFileNamesMessage = allFileNames.slice(0, 10).join('\n') + `\n...and ${allFileNames.length-10} more`;
+        } else {
+            allFileNamesMessage = allFileNames.join('\n');
+        }
+        // Show max 10 files
+        this.log.data(`Flowing files:\n${allFileNamesMessage}`);
+
+        // Rest streams may be more than one
+        const restStreamIdxes = [];
         
         for (let i = 0; i < filesShouldBeTransformedAgain.length; ++i) {
             let matched = false;
@@ -432,45 +428,21 @@ class Panto extends EventEmitter {
             this._dependencies.clear(filesShouldBeTransformedAgain[i].filename);
 
             for (let j = 0; j < this._streams.length; ++j) {
+                if(this._streams[j].isRest()){
+                    restStreamIdxes.push(j);
+                }
                 if (this._streams[j].fix(filesShouldBeTransformedAgain[i])) {
                     matched = true;
                 }
             }
 
-            if (!matched && this._restStreamIdx >= 0) {
-                this._streams[this._restStreamIdx].fix(filesShouldBeTransformedAgain[i], true);
-            }
-        }
-        return this._walkStream();
-    }
-    _group(filenames) {
-
-        const restGroup = new FileCollection();
-
-        for (let i = 0; i < filenames.length; ++i) {
-            let filename = filenames[i];
-            let matched = false;
-            const file = {
-                filename
-            }; // Mutiple shares
-
-            this._streams.forEach((stream, idx) => {
-                if (stream.isRest()) {
-                    this._restStreamIdx = idx;
-                } else if (stream.swallow(file)) {
-                    matched = true;
-                }
-            });
-
             if (!matched) {
-                restGroup.add(file);
+                restStreamIdxes.forEach(restStreamIdx => {
+                    this._streams[restStreamIdx].fix(filesShouldBeTransformedAgain[i], true);
+                });
             }
         }
-
-        if (this._restStreamIdx >= 0) {
-            this._streams[this._restStreamIdx].copy(restGroup);
-        }
-
+        return this.walkStream();
     }
 }
 /**
