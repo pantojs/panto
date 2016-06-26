@@ -93,30 +93,21 @@ describe('panto', () => {
         it('should walk the whole map', () => {
             panto.clear();
             panto.reportDependencies('a.css', 'a.png');
-            panto.reportDependencies('a.html', ['a.css', 'b.png', 'a.js']);
-            panto.reportDependencies('a.es', ['a.html']);
-            let filesShouldBeTransformedAgain = panto._resolveAllChangedFiles({
-                filename: 'a.css',
-                cmd: 'change'
-            });
-            assert.deepEqual(filesShouldBeTransformedAgain.map(file => file.filename).sort(), [
-                'a.css', 'a.es', 'a.html'
-            ], 'a.css=>a.html+a.es');
-            filesShouldBeTransformedAgain = panto._resolveAllChangedFiles({
-                filename: 'b.png',
-                cmd: 'change'
-            });
-            assert.deepEqual(filesShouldBeTransformedAgain.map(file => file.filename).sort(), [
-                'a.es', 'a.html', 'b.png'
-            ], 'b.png=>a.html+a.es');
-            filesShouldBeTransformedAgain = panto._resolveAllChangedFiles({
-                filename: 'a.html',
-                cmd: 'remove'
-            });
-            assert.deepEqual(filesShouldBeTransformedAgain.map(file => file.filename).sort(), [
+            panto.reportDependencies('a.html', 'a.css', 'b.png', 'a.js');
+            panto.reportDependencies('a.es', 'a.html');
+
+            let filesShouldBeTransformedAgain = panto._dependencies.resolve('a.css');
+            assert.deepEqual(filesShouldBeTransformedAgain.sort(), [
                 'a.es', 'a.html'
+            ], 'a.css=>a.html+a.es');
+            filesShouldBeTransformedAgain = panto._dependencies.resolve('b.png');
+            assert.deepEqual(filesShouldBeTransformedAgain.sort(), [
+                'a.es', 'a.html'
+            ], 'b.png=>a.html+a.es');
+            filesShouldBeTransformedAgain = panto._dependencies.resolve('a.html');
+            assert.deepEqual(filesShouldBeTransformedAgain.sort(), [
+                'a.es'
             ], 'a.html=>a.es');
-            assert.ok(!('a.html' in panto._dependencies), 'remove a.html');
         });
     });
     describe('#pick', () => {

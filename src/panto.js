@@ -26,10 +26,12 @@ const isString = require('lodash/isString');
 const camelCase = require('lodash/camelCase');
 const extend = require('lodash/extend');
 const lodash = require('lodash');
+const uniq = require('lodash/uniq');
 const flattenDeep = require('lodash/flattenDeep');
 
 const Stream = require('./stream');
 const FileCollection = require('./file-collection');
+const DependencyMap = require('./dependency-map');
 
 /** Class representing a panto */
 class Panto extends EventEmitter {
@@ -120,7 +122,7 @@ class Panto extends EventEmitter {
                 enumerable: false
             },
             _dependencies: {
-                value: {},
+                value: new DependencyMap(),
                 writable: false,
                 configurable: false,
                 enumerable: false
@@ -212,7 +214,7 @@ class Panto extends EventEmitter {
      *     _transform(file) {
      *         return new Promise(resolve => {
      *             // "url(...)" analysis
-     *             panto.reportDependencies(file.filename, 'src/img/bg.png');
+     *             panto.reportDependencies(file.filename, 'src/img/bg.png', 'src/img/dark.png');
      *             resolve(file);
      *         });
      *     }
@@ -223,26 +225,12 @@ class Panto extends EventEmitter {
      * @param  {Array|string} dependencies The files that current file depends on
      * @return {Panto} this
      */
-    reportDependencies(filename, dependencies) {
-        if (!filename || !dependencies) {
+    reportDependencies(filename, ...dependencies) {
+        if (!filename || !dependencies || !dependencies.length) {
             return this;
         }
 
-        let deps = this._dependencies[filename];
-
-        if (!deps) {
-            this._dependencies[filename] = deps = {};
-        }
-
-        if (!Array.isArray(dependencies)) {
-            dependencies = [dependencies];
-        }
-
-        dependencies.forEach(dep => {
-            if (!deps[dep]) {
-                deps[dep] = 1; // any value truely
-            }
-        });
+        this._dependencies.add(filename, ...dependencies)
 
         return this;
     }
@@ -281,10 +269,7 @@ class Panto extends EventEmitter {
      */
     clear() {
         this._streams.splice(0);
-
-        Object.keys(this._dependencies).forEach(key => {
-            delete this._dependencies[key];
-        });
+        this._dependencies.clear();
 
         return this;
     }
@@ -429,46 +414,23 @@ class Panto extends EventEmitter {
             this.emit('error', err);
         });
     }
-    _resolveAllChangedFiles(...diffs) {
-        const filesShouldBeTransformedAgain = diffs.slice();
-
-        const findDependencies = filename => {
-            for (let dfn in this._dependencies) {
-                if (this._dependencies[dfn][filename]) {
-                    if (!filesShouldBeTransformedAgain.some(f => (f.filename === dfn))) {
-                        filesShouldBeTransformedAgain.push({
-                            filename: dfn,
-                            cmd: 'change'
-                        });
-                    }
-                    findDependencies(dfn);
-                }
-            }
-        };
-
-        for (let i = 0; i < diffs.length; ++i) {
-            let {
-                filename,
-                cmd
-            } = diffs[i];
-
-            if ('remove' === cmd) {
-                delete this._dependencies[filename];
-            }
-
-            findDependencies(filename);
-        }
-        return filesShouldBeTransformedAgain;
-    }
     _onWatchFiles(...diffs) {
+        const changedFileNames = diffs.map(f => f.filename);
+        const dependencyFileNames = this._dependencies.resolve(...changedFileNames);
+        
         // Find all the files should be transformed again
-        const filesShouldBeTransformedAgain = this._resolveAllChangedFiles(...diffs);
+        const filesShouldBeTransformedAgain = diffs.concat(dependencyFileNames.map(filename => ({
+            filename,
+            cmd: 'change'
+        })));
 
-        this.log.data('The following files will be transformed again:\n', filesShouldBeTransformedAgain.map(f => f.filename)
+        this.log.data('Incremental files:\n', dependencyFileNames.concat(changedFileNames)
             .join('\n'));
         
         for (let i = 0; i < filesShouldBeTransformedAgain.length; ++i) {
             let matched = false;
+
+            this._dependencies.clear(filesShouldBeTransformedAgain[i].filename);
 
             for (let j = 0; j < this._streams.length; ++j) {
                 if (this._streams[j].fix(filesShouldBeTransformedAgain[i])) {
