@@ -4,10 +4,11 @@
  *
  * changelog
  * 2016-06-21[18:46:42]:revised
+ * 2016-06-26[12:17:28]:add match to panto.file
  *
  * @author yanni4night@gmail.com
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.9
+ * @since 0.0.1
  */
 'use strict';
 
@@ -141,7 +142,8 @@ class Panto extends EventEmitter {
                     write: W,
                     locate: L,
                     mkdirp: safeDirp,
-                    isBinary
+                    isBinary,
+                    match: minimatch
                 },
                 writable: false,
                 configurable: false,

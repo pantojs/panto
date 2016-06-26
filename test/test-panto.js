@@ -38,6 +38,7 @@ describe('panto', () => {
             assert.ok(isFunction(panto.file.write), '"panto.file.write" is function');
             assert.ok(isFunction(panto.file.locate), '"panto.file.locate" is function');
             assert.ok(isFunction(panto.file.isBinary), '"panto.file.isBinary" is function');
+            assert.ok(isFunction(panto.file.match), '"panto.file.isBinary" is function');
             assert.ok(Object.isFrozen(panto.file), '"panto.file" is frozen');
         });
         it('should define frozen "util"', () => {
