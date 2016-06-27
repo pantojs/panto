@@ -29,7 +29,6 @@ const lodash = require('lodash');
 const flattenDeep = require('lodash/flattenDeep');
 
 const Stream = require('./stream');
-const FileCollection = require('./file-collection');
 const DependencyMap = require('./dependency-map');
 
 /** Class representing a panto */
@@ -312,12 +311,15 @@ class Panto extends EventEmitter {
      *
      * For example,
      * <code>
+     * panto.on('error', err => {});
+     * panto.on('complete', () => {});
+     * 
      * panto.build().then(() => {
      *     panto.watch();
-     * }).catch(...)
+     * });
      * </code>
      * 
-     * @return {Promise}
+     * @return {Panto} this
      */
     watch() {
         const {
@@ -355,8 +357,13 @@ class Panto extends EventEmitter {
                     cmd: 'remove'
                 });
             });
-
+        return this;
     }
+    /**
+     * Walk all the streams and flow.
+     * 
+     * @return {[type]} [description]
+     */
     walkStream() {
         return new Promise((resolve, reject) => {
             let ret = [];
@@ -397,8 +404,19 @@ class Panto extends EventEmitter {
             return files;
         }).catch(err => {
             this.emit('error', err);
+            throw err;
         });
     }
+    /**
+     * Invoked after file changed/added/removed,
+     * for re-building.
+     *
+     * It tries to incrementally modified the cache
+     * in streams, which supports fast re-build.
+     * 
+     * @param  {...object} diffs
+     * @return {Promise}
+     */
     onFileDiff(...diffs) {
         const changedFileNames = diffs.map(f => f.filename);
         const dependencyFileNames = this._dependencies.resolve(...changedFileNames);

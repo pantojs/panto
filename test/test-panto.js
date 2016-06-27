@@ -79,34 +79,14 @@ describe('panto', () => {
             });
         });
     });
-    describe('#reportDependencies#_resolveAllChangedFiles', () => {
-        it('should walk the whole map', () => {
-            panto.clear();
-            panto.reportDependencies('a.css', 'a.png');
-            panto.reportDependencies('a.html', 'a.css', 'b.png', 'a.js');
-            panto.reportDependencies('a.es', 'a.html');
-
-            let filesShouldBeTransformedAgain = panto._dependencies.resolve('a.css');
-            assert.deepEqual(filesShouldBeTransformedAgain.sort(), [
-                'a.es', 'a.html'
-            ], 'a.css=>a.html+a.es');
-            filesShouldBeTransformedAgain = panto._dependencies.resolve('b.png');
-            assert.deepEqual(filesShouldBeTransformedAgain.sort(), [
-                'a.es', 'a.html'
-            ], 'b.png=>a.html+a.es');
-            filesShouldBeTransformedAgain = panto._dependencies.resolve('a.html');
-            assert.deepEqual(filesShouldBeTransformedAgain.sort(), [
-                'a.es'
-            ], 'a.html=>a.es');
-        });
-    });
     describe('#pick', () => {
         it('should pick the files', () => {
             panto.setOptions({
                 cwd: __dirname
             });
-            assert.ok(panto.pick('*-panto.js').end().swallow({
-                filename: 'test-panto.js'
+            assert.ok(panto.pick('*-panto.js').end().fix({
+                filename: 'test-panto.js',
+                cmd: 'add'
             }), 'match "test-panto.js"');
         });
     });
@@ -149,7 +129,7 @@ describe('panto', () => {
                     '"test/test-panto.js" picked');
             }).then(()=>{
                 done();
-            }).catch(e=>{console.error(e)});
+            });
         });
     });
     describe('#loadTransformer', () => {
