@@ -5,9 +5,10 @@
  * changelog
  * 2016-06-21[18:46:42]:revised
  * 2016-06-26[12:17:28]:add match to panto.file
+ * 2016-06-26[17:36:31]:dependencies map
  *
  * @author yanni4night@gmail.com
- * @version 0.0.9
+ * @version 0.0.10
  * @since 0.0.1
  */
 'use strict';
@@ -28,9 +29,9 @@ const lodash = require('lodash');
 const flattenDeep = require('lodash/flattenDeep');
 
 const Stream = require('./stream');
-const FileCollection = require('./file-collection');
+const DependencyMap = require('./dependency-map');
 
-/**  */
+/** Class representing a panto */
 class Panto extends EventEmitter {
     constructor() {
         super();
@@ -96,8 +97,7 @@ class Panto extends EventEmitter {
                 });
             });
         };
-
-        let _restStreamIdx = -1;
+        
         Object.defineProperties(this, {
             log: {
                 value: logger,
@@ -117,16 +117,9 @@ class Panto extends EventEmitter {
                 configurable: false,
                 enumerable: false
             },
-            _restStreamIdx: {
-                set(idx) {
-                    if (isNaN(idx)) {
-                        throw new Error('"_restStreamIdx" must be a number');
-                    }
-                    _restStreamIdx = +idx;
-                },
-                get() {
-                    return _restStreamIdx;
-                },
+            _dependencies: {
+                value: new DependencyMap(),
+                writable: false,
                 configurable: false,
                 enumerable: false
             },
@@ -150,6 +143,7 @@ class Panto extends EventEmitter {
                 enumerable: true
             }
         });
+
         Object.freeze(this.file);
         Object.freeze(this.log);
         Object.freeze(this.util);
@@ -183,6 +177,45 @@ class Panto extends EventEmitter {
                 }
             });
         });
+    }
+    /**
+     * Report a dependency.
+     *
+     * Panto mantains a MAP, each key-value pair
+     * represents a file and the files it depends on.
+     * The MAP is very important when building incremental
+     * files, aka change/remove/add. When a file change, it 
+     * and the files depend on it all have to be re-built.
+     *
+     * Panto does not care how a file depends or be depended
+     * on another file. It is reported by the transformers.
+     *
+     * For example,
+     *
+     * <code>
+     * class CssUrlTransformer extends Transformer {
+     *     _transform(file) {
+     *         return new Promise(resolve => {
+     *             // "url(...)" analysis
+     *             panto.reportDependencies(file.filename, 'src/img/bg.png', 'src/img/dark.png');
+     *             resolve(file);
+     *         });
+     *     }
+     * }
+     * </code>
+     * 
+     * @param  {string} filename The current files
+     * @param  {Array|string} dependencies The files that current file depends on
+     * @return {Panto} this
+     */
+    reportDependencies(filename, ...dependencies) {
+        if (!filename || !dependencies || !dependencies.length) {
+            return this;
+        }
+
+        this._dependencies.add(filename, ...dependencies);
+
+        return this;
     }
     /**
      * Select some files matched the pattern.
@@ -219,25 +252,9 @@ class Panto extends EventEmitter {
      */
     clear() {
         this._streams.splice(0);
+        this._dependencies.clear();
+
         return this;
-    }
-    /**
-     * Do the build, including "getFiles",
-     * "_group" and "_walkStream".
-     *
-     * For example,
-     * <code>
-     * panto.build().catch(...)
-     * </code>
-     * 
-     * @return {Promise}
-     */
-    build() {
-        return this.getFiles().then(filenames => {
-            return this._group(filenames);
-        }).then(() => {
-            return this._walkStream();
-        });
     }
     /**
      * Load a transformer as a shortcut.
@@ -270,17 +287,39 @@ class Panto extends EventEmitter {
         return this;
     }
     /**
+     * Do the build, including "getFiles",
+     * "onFileDiff" and "walkStream".
+     *
+     * For example,
+     * <code>
+     * panto.build().catch(...)
+     * </code>
+     * 
+     * @return {Promise}
+     */
+    build() {
+        return this.getFiles().then(filenames => {
+            return this.onFileDiff(...filenames.map(filename => ({
+                filename,
+                cmd: 'add'
+            })));
+        });
+    }
+    /**
      * Watch cwd for any file change.
      * It should be after build.
      *
      * For example,
      * <code>
+     * panto.on('error', err => {});
+     * panto.on('complete', () => {});
+     * 
      * panto.build().then(() => {
      *     panto.watch();
-     * }).catch(...)
+     * });
      * </code>
      * 
-     * @return {Promise}
+     * @return {Panto} this
      */
     watch() {
         const {
@@ -299,33 +338,39 @@ class Panto extends EventEmitter {
         });
         watcher.on('add', path => {
                 this.log.info(`File ${path} has been added`);
-                this._onWatchFiles({
+                this.onFileDiff({
                     filename: path,
                     cmd: 'add'
                 });
             })
             .on('change', path => {
                 this.log.info(`File ${path} has been changed`);
-                this._onWatchFiles({
+                this.onFileDiff({
                     filename: path,
                     cmd: 'change'
                 });
             })
             .on('unlink', path => {
                 this.log.info(`File ${path} has been removed`);
-                this._onWatchFiles({
+                this.onFileDiff({
                     filename: path,
                     cmd: 'remove'
                 });
             });
-
+        return this;
     }
-    _walkStream() {
+    /**
+     * Walk all the streams and flow.
+     * 
+     * @return {[type]} [description]
+     */
+    walkStream() {
         return new Promise((resolve, reject) => {
             let ret = [];
             const startTime = process.hrtime();
             let startStreamIdx = 0;
-            const walkStream = () => {
+            
+            const _walkStream = () => {
                 if (startStreamIdx === this._streams.length) {
                     const diff = process.hrtime(startTime);
                     const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
@@ -348,62 +393,74 @@ class Panto extends EventEmitter {
                                 this.log.debug(`${stream.tag}...complete in ${streamMs}ms`);
 
                                 ret.push(data);
-                                walkStream();
+                                _walkStream();
                             }).catch(reject);
                 }
                 startStreamIdx += 1;
             };
-            walkStream();
+            _walkStream();
         }).then(files => {
             this.emit('complete', files);
             return files;
+        }).catch(err => {
+            this.emit('error', err);
+            throw err;
         });
     }
-    _onWatchFiles(...diffs) {
+    /**
+     * Invoked after file changed/added/removed,
+     * for re-building.
+     *
+     * It tries to incrementally modified the cache
+     * in streams, which supports fast re-build.
+     * 
+     * @param  {...object} diffs
+     * @return {Promise}
+     */
+    onFileDiff(...diffs) {
+        const changedFileNames = diffs.map(f => f.filename);
+        const dependencyFileNames = this._dependencies.resolve(...changedFileNames);
+        
+        // Find all the files should be transformed again
+        const filesShouldBeTransformedAgain = diffs.concat(dependencyFileNames.map(filename => ({
+            filename,
+            cmd: 'change'
+        })));
 
-        for (let i = 0; i < diffs.length; ++i) {
+        let allFileNames = dependencyFileNames.concat(changedFileNames);
+        let allFileNamesMessage;
+        if (allFileNames.length > 10) {
+            allFileNamesMessage = allFileNames.slice(0, 10).join('\n') + `\n...and ${allFileNames.length-10} more`;
+        } else {
+            allFileNamesMessage = allFileNames.join('\n');
+        }
+        // Show max 10 files
+        this.log.data(`Flowing files:\n${allFileNamesMessage}`);
+
+        // Rest streams may be more than one
+        const restStreamIdxes = [];
+        
+        for (let i = 0; i < filesShouldBeTransformedAgain.length; ++i) {
             let matched = false;
+
+            this._dependencies.clear(filesShouldBeTransformedAgain[i].filename);
 
             for (let j = 0; j < this._streams.length; ++j) {
-                if (this._streams[j].fix(diffs[i])) {
+                if(this._streams[j].isRest()){
+                    restStreamIdxes.push(j);
+                }
+                if (this._streams[j].fix(filesShouldBeTransformedAgain[i])) {
                     matched = true;
                 }
             }
-
-            if (!matched && this._restStreamIdx >= 0) {
-                this._streams[this._restStreamIdx].fix(diffs[i], true);
-            }
-        }
-        return this._walkStream();
-    }
-    _group(filenames) {
-
-        const restGroup = new FileCollection();
-
-        for (let i = 0; i < filenames.length; ++i) {
-            let filename = filenames[i];
-            let matched = false;
-            const file = {
-                filename
-            }; // Mutiple shares
-
-            this._streams.forEach((stream, idx) => {
-                if (stream.isRest()) {
-                    this._restStreamIdx = idx;
-                } else if (stream.swallow(file)) {
-                    matched = true;
-                }
-            });
 
             if (!matched) {
-                restGroup.add(file);
+                restStreamIdxes.forEach(restStreamIdx => {
+                    this._streams[restStreamIdx].fix(filesShouldBeTransformedAgain[i], true);
+                });
             }
         }
-
-        if (this._restStreamIdx >= 0) {
-            this._streams[this._restStreamIdx].copy(restGroup);
-        }
-
+        return this.walkStream();
     }
 }
 /**

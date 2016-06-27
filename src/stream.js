@@ -75,24 +75,6 @@ class Stream extends EventEmitter {
         return null === this._pattern;
     }
     /**
-     * If the file matches, or is forced,
-     * then add the file.
-     * 
-     * @param  {object} file
-     * @param  {Boolean} force
-     * @return {Boolean} If added
-     */
-    swallow(file, force) {
-        if (this.isRest() && !force) {
-            return false;
-        } else if (this._matchFiles && (force || minimatch(file.filename, this._pattern))) {
-            this._matchFiles.add(file);
-            return true;
-        } else {
-            return false;
-        }
-    }
-    /**
      * Try to fixed the matched/cached files according to diffs.
      * 
      * @param  {object} diff
@@ -115,17 +97,6 @@ class Stream extends EventEmitter {
             return true;
         }
         return false;
-    }
-    /**
-     * Copy the files in fileCollection to 
-     * the added file collection.
-     * 
-     * @param  {FileCollection} fileCollection
-     * @return {Stream} this
-     */
-    copy(fileCollection) {
-        this._matchFiles.wrap(fileCollection);
-        return this;
     }
     /**
      * Flow the files, if has parent, parent flows first.

@@ -117,19 +117,6 @@ describe('stream', () => {
             rs.emit('end');
         });
     });
-    describe('#swallow', () => {
-        it('should swallow the file', () => {
-            const s = new Stream(null, '*.jpg').end();
-            assert.ok(s.swallow({
-                filename: 'a.jpg'
-            }));
-            assert.ok(s.swallow({
-                filename: 'a.bmp'
-            }, true));
-            assert.ok(s._matchFiles.has('a.jpg'));
-            assert.ok(s._matchFiles.has('a.bmp'));
-        });
-    });
     describe('#flow', () => {
         it('should return origin if transformer is null', done => {
             const s = new Stream().end();
