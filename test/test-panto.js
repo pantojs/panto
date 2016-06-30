@@ -38,6 +38,8 @@ describe('panto', () => {
             assert.ok(isFunction(panto.file.write), '"panto.file.write" is function');
             assert.ok(isFunction(panto.file.locate), '"panto.file.locate" is function');
             assert.ok(isFunction(panto.file.isBinary), '"panto.file.isBinary" is function');
+            assert.ok(panto.file.isBinary('/s/d/a.png'), '.png is binary');
+            assert.ok(!panto.file.isBinary('/s/d/a.txt'), '.txt is text');
             assert.ok(isFunction(panto.file.match), '"panto.file.isBinary" is function');
             assert.ok(Object.isFrozen(panto.file), '"panto.file" is frozen');
         });
@@ -90,7 +92,8 @@ describe('panto', () => {
             }), 'match "test-panto.js"');
         });
     });
-    describe('#build#clear#rest', () => {
+    describe('#build#clear#rest', function() {
+        this.timeout(3e3);
         it('should pick the rest', done => {
             const restFiles = [];
 
@@ -127,7 +130,7 @@ describe('panto', () => {
                     '"index.js" picked');
                 assert.ok(jsFiles.some(file => file.filename === 'test/test-panto.js'),
                     '"test/test-panto.js" picked');
-            }).then(()=>{
+            }).then(() => {
                 done();
             });
         });

@@ -6,9 +6,10 @@
  * 2016-06-21[18:46:42]:revised
  * 2016-06-26[12:17:28]:add match to panto.file
  * 2016-06-26[17:36:31]:dependencies map
+ * 2016-07-01[00:05:53]:fixed isbinary
  *
  * @author yanni4night@gmail.com
- * @version 0.0.10
+ * @version 0.0.11
  * @since 0.0.1
  */
 'use strict';
@@ -42,7 +43,7 @@ class Panto extends EventEmitter {
         };
         const options = extend({}, defaultOpts);
 
-        const isBinary = filename => minimatch(filename, options.binary_resource);
+        const isBinary = filename => minimatch(path.basename(filename), `*.{${options.binary_resource}}`);
 
         const L = name => path.join(options.cwd, name);
 
