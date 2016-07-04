@@ -1,6 +1,6 @@
 {
   "name": "panto",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "PantoJS is an ambitious file-transforming task runner",
   "main": "index.js",
   "scripts": {
@@ -28,6 +28,7 @@
   },
   "homepage": "https://github.com/pantojs/panto#readme",
   "dependencies": {
+    "binary-extensions": "^1.5.0",
     "chokidar": "^1.5.2",
     "glob": "^7.0.5",
     "lodash": "^4.13.1",

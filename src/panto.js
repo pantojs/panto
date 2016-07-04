@@ -28,6 +28,7 @@ const camelCase = require('lodash/camelCase');
 const extend = require('lodash/extend');
 const lodash = require('lodash');
 const flattenDeep = require('lodash/flattenDeep');
+const binaryExtensions = require('binary-extensions');
 
 const Stream = require('./stream');
 const DependencyMap = require('./dependency-map');
@@ -39,11 +40,15 @@ class Panto extends EventEmitter {
         const defaultOpts = {
             cwd: process.cwd(),
             output: 'output',
-            binary_resource: 'webp,png,jpg,jpeg,gif,bmp,tiff,swf,woff,woff2,ttf,eot,otf,cur,zip,gz,7z,gzip,tgz,lzh,lha,bz2,bzip2,tbz2,tbz,xz,txz,z,lzma,arj,cab,alz,egg,bh,jar,iso,img,udf,wim,rar,tar,bz2,apk,ipa,exe,pages,numbers,key,graffle,xmind,xls,xlsx,doc,docx,ppt,pptx,pot,potx,ppsx,pps,pptm,potm,ppsm,thmx,ppam,ppa,psd,dmg,pdf,rtf,dot,mht,dotm,docm,csv,xlt,xls,xltx,xla,xltm,xlsm,xlam,xlsb,slk,mobi,mp3,mp4,wma,rmvb,ogg,wav,aiff,midi,au,aac,flac,ape,avi,mov,asf,wmv,3gp,mkv,mov,flv,f4v,rmvb,webm,vob,rmf'
+            binary_resource: ''
         };
+
         const options = extend({}, defaultOpts);
 
-        const isBinary = filename => minimatch(path.basename(filename), `*.{${options.binary_resource}}`);
+        const isBinary = filepath => {
+            const ext = path.extname(filepath).slice(1).toLowerCase();
+            return (options.binary_resource || '').toLowerCase().split(',').indexOf(ext) > -1 || binaryExtensions.indexOf(ext) > -1;
+        };
 
         const L = name => path.join(options.cwd, name);
 
