@@ -34,7 +34,8 @@
     "lodash": "^4.13.1",
     "minimatch": "^3.0.2",
     "mkdirp": "^0.5.1",
-    "panto-logger": "^0.2.0"
+    "panto-logger": "^0.2.0",
+    "rimraf": "^2.5.3"
   },
   "devDependencies": {
     "panto-transformer": "^0.1.4"

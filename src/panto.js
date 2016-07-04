@@ -7,9 +7,10 @@
  * 2016-06-26[12:17:28]:add match to panto.file
  * 2016-06-26[17:36:31]:dependencies map
  * 2016-07-01[00:05:53]:fixed isbinary
+ * 2016-07-04[23:14:52]:use binary extension;add rimraf
  *
  * @author yanni4night@gmail.com
- * @version 0.0.11
+ * @version 0.0.12
  * @since 0.0.1
  */
 'use strict';
@@ -22,6 +23,7 @@ const chokidar = require('chokidar');
 const glob = require('glob');
 const minimatch = require('minimatch');
 const mkdirp = require('mkdirp');
+const rimraf = require('rimraf');
 const logger = require('panto-logger');
 const isString = require('lodash/isString');
 const camelCase = require('lodash/camelCase');
@@ -142,6 +144,7 @@ class Panto extends EventEmitter {
                     locate: L,
                     mkdirp: safeDirp,
                     isBinary,
+                    rimraf,
                     match: minimatch
                 },
                 writable: false,

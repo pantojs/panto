@@ -41,6 +41,7 @@ describe('panto', () => {
             assert.ok(panto.file.isBinary('/s/d/a.png'), '.png is binary');
             assert.ok(!panto.file.isBinary('/s/d/a.txt'), '.txt is text');
             assert.ok(isFunction(panto.file.match), '"panto.file.isBinary" is function');
+            assert.ok(isFunction(panto.file.rimraf), '"panto.file.isBinary" is function');
             assert.ok(Object.isFrozen(panto.file), '"panto.file" is frozen');
         });
         it('should define frozen "util"', () => {
