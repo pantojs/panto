@@ -15,147 +15,40 @@
  */
 'use strict';
 
-const fs = require('fs');
-const path = require('path');
 const EventEmitter = require('events');
 
 const chokidar = require('chokidar');
 const glob = require('glob');
-const minimatch = require('minimatch');
-const mkdirp = require('mkdirp');
-const rimraf = require('rimraf');
 const logger = require('panto-logger');
 const isString = require('lodash/isString');
 const camelCase = require('lodash/camelCase');
-const extend = require('lodash/extend');
 const lodash = require('lodash');
 const flattenDeep = require('lodash/flattenDeep');
-const binaryExtensions = require('binary-extensions');
 
 const Stream = require('./stream');
+const Options = require('./options');
+const FileUtils = require('./file');
+const {defineFrozenProperty} = require('./utils');
 const DependencyMap = require('./dependency-map');
 
 /** Class representing a panto */
 class Panto extends EventEmitter {
     constructor() {
         super();
-        const defaultOpts = {
+
+        const options = new Options({
             cwd: process.cwd(),
             output: 'output',
             binary_resource: ''
-        };
-
-        const options = extend({}, defaultOpts);
-
-        const isBinary = filepath => {
-            const ext = path.extname(filepath).slice(1).toLowerCase();
-            return (options.binary_resource || '').toLowerCase().split(',').indexOf(ext) > -1 || binaryExtensions.indexOf(ext) > -1;
-        };
-
-        const L = name => path.join(options.cwd, name);
-
-        const safeDirp = name => {
-            const fpath = L(name);
-            const dir = path.dirname(fpath);
-            return new Promise(resolve => {
-                fs.exists(dir, exist => {
-                    resolve(exist);
-                });
-            }).then(exist => {
-                if (!exist) {
-                    return new Promise((resolve, reject) => {
-                        mkdirp(dir, err => {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve(fpath);
-                            }
-                        });
-                    });
-                } else {
-                    return fpath;
-                }
-            });
-        };
-
-        const R = name => {
-            return new Promise((resolve, reject) => {
-                fs.readFile(L(name), {
-                    encoding: isBinary(name) ? null : 'utf-8'
-                }, (err, content) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(content);
-                    }
-                });
-            });
-        };
-
-        const W = (name, content) => {
-            return safeDirp(path.join(options.output, name)).then(fpath => {
-                return new Promise((resolve, reject) => {
-                    fs.writeFile(fpath, content, err => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve();
-                        }
-                    });
-                });
-            });
-        };
-        
-        Object.defineProperties(this, {
-            log: {
-                value: logger,
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
-            util: {
-                value: lodash,
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
-            _streams: {
-                value: [],
-                writable: false,
-                configurable: false,
-                enumerable: false
-            },
-            _dependencies: {
-                value: new DependencyMap(),
-                writable: false,
-                configurable: false,
-                enumerable: false
-            },
-            options: {
-                value: options,
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
-            file: {
-                value: {
-                    read: R,
-                    write: W,
-                    locate: L,
-                    mkdirp: safeDirp,
-                    isBinary,
-                    rimraf,
-                    match: minimatch
-                },
-                writable: false,
-                configurable: false,
-                enumerable: true
-            }
         });
-
-        Object.freeze(this.file);
-        Object.freeze(this.log);
-        Object.freeze(this.util);
+        
+        defineFrozenProperty(this, 'options', options, true);
+        defineFrozenProperty(this, 'file', new FileUtils(options), true);
+        defineFrozenProperty(this, 'log', logger, true);
+        defineFrozenProperty(this, 'util', lodash, true);
+        defineFrozenProperty(this, '_', lodash, true);
+        defineFrozenProperty(this, '_streams', []);
+        defineFrozenProperty(this, '_dependencies', new DependencyMap());
     }
     /**
      * Extend options.
@@ -164,7 +57,7 @@ class Panto extends EventEmitter {
      * @return {Panto} this
      */
     setOptions(opt) {
-        extend(this.options, opt);
+        this.options.extend(opt);
         return this;
     }
     /**
@@ -175,9 +68,9 @@ class Panto extends EventEmitter {
     getFiles() {
         return new Promise((resolve, reject) => {
             glob('**/*', {
-                cwd: this.options.cwd,
+                cwd: this.options.get('cwd'),
                 nodir: true,
-                ignore: `${this.options.output}/**/*`
+                ignore: `${this.options.get('output')}/**/*`
             }, (err, filenames) => {
                 if (err) {
                     reject(err);
@@ -331,10 +224,8 @@ class Panto extends EventEmitter {
      * @return {Panto} this
      */
     watch() {
-        const {
-            cwd,
-            output
-        } = this.options;
+        const cwd = this.options.get('cwd');
+        const output = this.options.get('ouput');
 
         this.log.info('=================================================');
         this.log.info(`Watching ${cwd}...`);

@@ -22,9 +22,9 @@ describe('panto', () => {
     describe('#constructor', () => {
         it('should define frozen "options"', () => {
             assert.ok('options' in panto, '"options" in panto');
-            assert.ok('cwd' in panto.options, '"cwd" in panto.options');
-            assert.ok('output' in panto.options, '"cwd" in panto.output');
-            assert.ok('binary_resource' in panto.options, '"cwd" in panto.binary_resource');
+            assert.ok(!!panto.options.get('cwd'), '"cwd" in panto.options');
+            assert.ok(!!panto.options.get('output'), '"output" in panto.options');
+            assert.ok('' === panto.options.get('binary_resource'), '"binary_resource" in panto.options');
             assert.throws(() => {
                 panto.options = 1;
             }, 'set "panto.options"');
@@ -42,11 +42,15 @@ describe('panto', () => {
             assert.ok(!panto.file.isBinary('/s/d/a.txt'), '.txt is text');
             assert.ok(isFunction(panto.file.match), '"panto.file.isBinary" is function');
             assert.ok(isFunction(panto.file.rimraf), '"panto.file.isBinary" is function');
-            assert.ok(Object.isFrozen(panto.file), '"panto.file" is frozen');
+            assert.throws(() => {
+                delete panto.file;
+            }, '"panto.file" is frozen');
         });
         it('should define frozen "util"', () => {
             assert.ok('util' in panto, '"util" in panto');
-            assert.ok(Object.isFrozen(panto.util), '"panto.util" is frozen');
+            assert.throws(() => {
+                delete panto.util;
+            }, '"panto.util" is frozen');
         });
         it('should define "_streams"', () => {
             assert.ok('_streams' in panto, '"_streams" in panto');
@@ -65,7 +69,7 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: 'xyz'
             });
-            assert.deepEqual(panto.options.cwd, 'xyz', '"panto.options.cwd" equals "xyz"');
+            assert.deepEqual(panto.options.get('cwd'), 'xyz', '"panto.options.cwd" equals "xyz"');
         });
     });
     describe('#getFiles', () => {
