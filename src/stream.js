@@ -15,38 +15,16 @@ const FileCollection = require('./file-collection');
 const EventEmitter = require('events');
 const flattenDeep = require('lodash/flattenDeep');
 const extend = require('lodash/extend');
+const {defineFrozenProperty} = require('./utils');
 
 /** Class representing a stream. */
 class Stream extends EventEmitter {
     constructor(parent, pattern, transformer) {
         super();
-        Object.defineProperties(this, {
-            _parent: {
-                value: parent,
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
-            _pattern: {
-                value: pattern,
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
-            _transformer: {
-                value: transformer,
-                writable: false,
-                configurable: false,
-                enumerable: true
-            },
-            _cacheFiles: {
-                value: new FileCollection(),
-                writable: false,
-                configurable: false,
-                enumerable: true
-            }
-        });
-
+        defineFrozenProperty(this, '_parent', parent);
+        defineFrozenProperty(this, '_pattern', pattern);
+        defineFrozenProperty(this, '_transformer', transformer);
+        defineFrozenProperty(this, '_cacheFiles', new FileCollection());
         this.tag = '';
     }
     /**

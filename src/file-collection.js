@@ -14,16 +14,12 @@
 const values = require('lodash/values');
 const extend = require('lodash/extend');
 const {warn} = require('panto-logger');
+const {defineFrozenProperty} = require('./utils');
 
 /** Class representing a file collection. */
 class FileCollection {
     constructor(...filenames) {
-        Object.defineProperty(this, '_fileObjects', {
-            value: {},
-            writable: false,
-            configurable: false,
-            enumerabel: true
-        });
+        defineFrozenProperty(this,'_fileObjects',{});
 
         filenames.forEach(filename => {
             this._fileObjects[filename] = {
@@ -117,7 +113,8 @@ class FileCollection {
         switch (diff.cmd) {
         case 'add':
             this.add({
-                filename: diff.filename
+                filename: diff.filename,
+                content: diff.content
             });
             break;
         case 'change':
