@@ -34,34 +34,16 @@ describe('panto', () => {
         });
         it('should define frozen "file"', () => {
             assert.ok('file' in panto);
-            assert.ok(isFunction(panto.file.read), '"panto.file.read" is function');
-            assert.ok(isFunction(panto.file.write), '"panto.file.write" is function');
-            assert.ok(isFunction(panto.file.locate), '"panto.file.locate" is function');
-            assert.ok(isFunction(panto.file.isBinary), '"panto.file.isBinary" is function');
-            assert.ok(panto.file.isBinary('/s/d/a.png'), '.png is binary');
-            assert.ok(!panto.file.isBinary('/s/d/a.txt'), '.txt is text');
-            assert.ok(isFunction(panto.file.match), '"panto.file.isBinary" is function');
-            assert.ok(isFunction(panto.file.rimraf), '"panto.file.isBinary" is function');
             assert.throws(() => {
                 delete panto.file;
             }, '"panto.file" is frozen');
         });
         it('should define frozen "util"', () => {
             assert.ok('util' in panto, '"util" in panto');
+            assert.ok('_' in panto, '"_" in panto');
             assert.throws(() => {
-                delete panto.util;
-            }, '"panto.util" is frozen');
-        });
-        it('should define "_streams"', () => {
-            assert.ok('_streams' in panto, '"_streams" in panto');
-            assert.ok(!Object.propertyIsEnumerable(panto, '_streams'));
-
-            assert.throws(() => {
-                panto._streams = 1;
-            }, 'set "panto._streams"');
-            assert.throws(() => {
-                delete panto._streams;
-            }, 'delete "panto._streams"');
+                delete panto._;
+            }, '"panto._" is frozen');
         });
     });
     describe('#setOptions', () => {

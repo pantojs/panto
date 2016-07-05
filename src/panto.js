@@ -26,9 +26,9 @@ const lodash = require('lodash');
 const flattenDeep = require('lodash/flattenDeep');
 
 const Stream = require('./stream');
-const Options = require('./options');
-const FileUtils = require('./fileutils');
-const {defineFrozenProperty} = require('./utils');
+const Options = require('panto-options');
+const FileUtils = require('panto-file-utils');
+const defineFrozenProperty = require('define-frozen-property');
 const DependencyMap = require('./dependency-map');
 
 /** Class representing a panto */
@@ -59,6 +59,15 @@ class Panto extends EventEmitter {
     setOptions(opt) {
         this.options.extend(opt);
         return this;
+    }
+    /**
+     * Get options.
+     * 
+     * @param  {...string} args Same as PantoOptions#get
+     * @return {mixed}
+     */
+    getOptions(...args) {
+        return this.options.get(..args);
     }
     /**
      * Search all the files in "cwd" option.

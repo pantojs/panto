@@ -14,7 +14,7 @@
 const values = require('lodash/values');
 const extend = require('lodash/extend');
 const {warn} = require('panto-logger');
-const {defineFrozenProperty} = require('./utils');
+const defineFrozenProperty = require('define-frozen-property');
 
 /** Class representing a file collection. */
 class FileCollection {

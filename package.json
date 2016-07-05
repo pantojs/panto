@@ -28,14 +28,14 @@
   },
   "homepage": "https://github.com/pantojs/panto#readme",
   "dependencies": {
-    "binary-extensions": "^1.5.0",
     "chokidar": "^1.5.2",
+    "define-frozen-property": "^0.1.0",
     "glob": "^7.0.5",
     "lodash": "^4.13.1",
     "minimatch": "^3.0.2",
-    "mkdirp": "^0.5.1",
+    "panto-file-utils": "^0.1.0",
     "panto-logger": "^0.2.0",
-    "rimraf": "^2.5.3"
+    "panto-options": "^0.1.0"
   },
   "devDependencies": {
     "panto-transformer": "^0.1.4"
