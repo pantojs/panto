@@ -27,7 +27,7 @@ const flattenDeep = require('lodash/flattenDeep');
 
 const Stream = require('./stream');
 const Options = require('./options');
-const FileUtils = require('./file');
+const FileUtils = require('./fileutils');
 const {defineFrozenProperty} = require('./utils');
 const DependencyMap = require('./dependency-map');
 

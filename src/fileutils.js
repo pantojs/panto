@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2016 pantojs.xyz
- * file.js
+ * fileutils.js
  *
  * changelog
  * 2016-07-04[23:38:50]:revised
