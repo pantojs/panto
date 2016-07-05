@@ -1,43 +1,45 @@
 {
-  "name": "panto",
-  "version": "0.0.12",
-  "description": "PantoJS is an ambitious file-transforming task runner",
-  "main": "index.js",
-  "scripts": {
-    "test": "eslint src test && mocha"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/pantojs/panto.git"
-  },
-  "keywords": [
-    "panto",
-    "build",
-    "task",
-    "runner",
-    "tool",
-    "transform"
-  ],
-  "engines": {
-    "node": ">=6.0.0"
-  },
-  "author": "yanni4night@gmail.com",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/pantojs/panto/issues"
-  },
-  "homepage": "https://github.com/pantojs/panto#readme",
-  "dependencies": {
-    "chokidar": "^1.5.2",
-    "define-frozen-property": "^0.1.0",
-    "glob": "^7.0.5",
-    "lodash": "^4.13.1",
-    "minimatch": "^3.0.2",
-    "panto-file-utils": "^0.1.0",
-    "panto-logger": "^0.2.0",
-    "panto-options": "^0.1.0"
-  },
-  "devDependencies": {
-    "panto-transformer": "^0.1.4"
-  }
+    "name": "panto",
+    "version": "0.0.12",
+    "description": "PantoJS is an ambitious file-transforming task runner",
+    "main": "index.js",
+    "scripts": {
+        "test": "eslint src test && mocha"
+    },
+    "precommit": "test",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pantojs/panto.git"
+    },
+    "keywords": [
+        "panto",
+        "build",
+        "task",
+        "runner",
+        "tool",
+        "transform"
+    ],
+    "engines": {
+        "node": ">=6.0.0"
+    },
+    "author": "yanni4night@gmail.com",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/pantojs/panto/issues"
+    },
+    "homepage": "https://github.com/pantojs/panto#readme",
+    "dependencies": {
+        "chokidar": "^1.5.2",
+        "define-frozen-property": "^0.1.0",
+        "glob": "^7.0.5",
+        "lodash": "^4.13.1",
+        "minimatch": "^3.0.2",
+        "panto-file-utils": "^0.1.0",
+        "panto-logger": "^0.2.0",
+        "panto-options": "^0.1.0"
+    },
+    "devDependencies": {
+        "panto-transformer": "^0.1.4",
+        "pre-commit": "^1.1.3"
+    }
 }

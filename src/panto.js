@@ -67,7 +67,7 @@ class Panto extends EventEmitter {
      * @return {mixed}
      */
     getOptions(...args) {
-        return this.options.get(..args);
+        return this.options.get(...args);
     }
     /**
      * Search all the files in "cwd" option.

@@ -46,7 +46,7 @@ describe('panto', () => {
             }, '"panto._" is frozen');
         });
     });
-    describe('#setOptions', () => {
+    describe('#setOptions#getOptions', () => {
         it('should set to the options', () => {
             panto.setOptions({
                 cwd: 'xyz'
