@@ -29,7 +29,7 @@ const Stream = require('./stream');
 const Options = require('panto-options');
 const FileUtils = require('panto-file-utils');
 const defineFrozenProperty = require('define-frozen-property');
-const DependencyMap = require('./dependency-map');
+const DependencyMap = require('panto-dependency-map');
 
 /** Class representing a panto */
 class Panto extends EventEmitter {
