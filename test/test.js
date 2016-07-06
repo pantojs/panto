@@ -46,12 +46,12 @@ describe('panto', () => {
             }, '"panto._" is frozen');
         });
     });
-    describe('#setOptions#getOptions', () => {
+    describe('#setOptions#getOption', () => {
         it('should set to the options', () => {
             panto.setOptions({
                 cwd: 'xyz'
             });
-            assert.deepEqual(panto.options.get('cwd'), 'xyz', '"panto.options.cwd" equals "xyz"');
+            assert.deepEqual(panto.getOption('cwd'), 'xyz', '"panto.options.cwd" equals "xyz"');
         });
     });
     describe('#getFiles', () => {

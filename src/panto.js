@@ -61,12 +61,12 @@ class Panto extends EventEmitter {
         return this;
     }
     /**
-     * Get options.
+     * Get option.
      * 
      * @param  {...string} args Same as PantoOptions#get
      * @return {mixed}
      */
-    getOptions(...args) {
+    getOption(...args) {
         return this.options.get(...args);
     }
     /**
