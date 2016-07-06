@@ -1,13 +1,13 @@
 /**
  * Copyright (C) 2016 panto.xyz
- * test-panto.js
+ * test.js
  *
  * changelog
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 1.0.0
- * @since 1.0.0
+ * @version 0.0.12
+ * @since 0.0.12
  */
 'use strict';
 const panto = require('../');
@@ -60,10 +60,8 @@ describe('panto', () => {
                 cwd: __dirname
             });
             panto.getFiles().then(filenames => {
-                assert.ok(filenames.indexOf('test-panto.js') > -1,
-                    'match "test-panto.js"');
-                assert.ok(filenames.indexOf('test-stream.js') > -1,
-                    'match "test-stream.js"');
+                assert.ok(filenames.indexOf('test.js') > -1,
+                    'match "test.js"');
                 done();
             });
         });
@@ -73,10 +71,10 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname
             });
-            assert.ok(panto.pick('*-panto.js').end().fix({
-                filename: 'test-panto.js',
+            assert.ok(panto.pick('*.js').end().fix({
+                filename: 'test.js',
                 cmd: 'add'
-            }), 'match "test-panto.js"');
+            }), 'match "test.js"');
         });
     });
     describe('#build#clear#rest', function() {
@@ -115,8 +113,8 @@ describe('panto', () => {
                     '"LICENSE" rested');
                 assert.ok(jsFiles.some(file => file.filename === 'index.js'),
                     '"index.js" picked');
-                assert.ok(jsFiles.some(file => file.filename === 'test/test-panto.js'),
-                    '"test/test-panto.js" picked');
+                assert.ok(jsFiles.some(file => file.filename === 'test/test.js'),
+                    '"test/test.js" picked');
             }).then(() => {
                 done();
             });

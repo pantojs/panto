@@ -19,17 +19,17 @@ const EventEmitter = require('events');
 
 const chokidar = require('chokidar');
 const glob = require('glob');
-const logger = require('panto-logger');
-const isString = require('lodash/isString');
-const camelCase = require('lodash/camelCase');
 const lodash = require('lodash');
-const flattenDeep = require('lodash/flattenDeep');
 
-const Stream = require('./stream');
+const defineFrozenProperty = require('define-frozen-property');
+
+const logger = require('panto-logger');
+const Stream = require('panto-stream');
 const Options = require('panto-options');
 const FileUtils = require('panto-file-utils');
-const defineFrozenProperty = require('define-frozen-property');
 const DependencyMap = require('panto-dependency-map');
+
+const {isString, camelCase, flattenDeep} = lodash;
 
 /** Class representing a panto */
 class Panto extends EventEmitter {
