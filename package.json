@@ -4,7 +4,8 @@
   "description": "PantoJS is an ambitious file-transforming task runner",
   "main": "index.js",
   "scripts": {
-    "test": "eslint src test && mocha"
+    "test": "eslint src test && ./node_modules/.bin/mocha",
+    "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
   "precommit": "test",
   "repository": {
@@ -41,6 +42,9 @@
     "panto-stream": "^0.3.0"
   },
   "devDependencies": {
+    "coveralls": "^2.11.9",
+    "mocha": "^2.5.3",
+    "mocha-lcov-reporter": "^1.2.0",
     "panto-transformer": "^0.2.2",
     "pre-commit": "^1.1.3"
   }
