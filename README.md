@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/pantojs/panto.png?label=ready&title=Ready)](https://waffle.io/pantojs/panto)
 # PantoJS
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url] [![Stories in Ready][waffle-image]][waffle-url]
 
