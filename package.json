@@ -1,6 +1,6 @@
 {
   "name": "panto",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "PantoJS is an ambitious file-transforming task runner",
   "main": "index.js",
   "scripts": {
@@ -38,10 +38,10 @@
     "panto-file-utils": "^0.1.0",
     "panto-logger": "^0.2.1",
     "panto-options": "^0.1.0",
-    "panto-stream": "^0.2.0"
+    "panto-stream": "^0.3.0"
   },
   "devDependencies": {
-    "panto-transformer": "^0.1.4",
+    "panto-transformer": "^0.2.2",
     "pre-commit": "^1.1.3"
   }
 }

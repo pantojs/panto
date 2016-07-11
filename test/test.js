@@ -6,8 +6,8 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.12
- * @since 0.0.12
+ * @version 0.0.13
+ * @since 0.0.1
  */
 'use strict';
 const panto = require('../');
@@ -18,13 +18,15 @@ const {
 } = require('lodash');
 
 /*global describe,it*/
+/*eslint no-console: ["error", { allow: ["error"] }] */
 describe('panto', () => {
     describe('#constructor', () => {
         it('should define frozen "options"', () => {
             assert.ok('options' in panto, '"options" in panto');
             assert.ok(!!panto.options.get('cwd'), '"cwd" in panto.options');
             assert.ok(!!panto.options.get('output'), '"output" in panto.options');
-            assert.ok('' === panto.options.get('binary_resource'), '"binary_resource" in panto.options');
+            assert.ok('' === panto.options.get('binary_resource'),
+                '"binary_resource" in panto.options');
             assert.throws(() => {
                 panto.options = 1;
             }, 'set "panto.options"');
@@ -71,13 +73,13 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname
             });
-            assert.ok(panto.pick('*.js').end().fix({
+            assert.ok(panto.pick('*.js').end().push({
                 filename: 'test.js',
                 cmd: 'add'
             }), 'match "test.js"');
         });
     });
-    describe('#build#clear#rest', function() {
+    describe('#build#clear#rest', function () {
         this.timeout(3e3);
         it('should pick the rest', done => {
             const restFiles = [];
@@ -117,7 +119,7 @@ describe('panto', () => {
                     '"test/test.js" picked');
             }).then(() => {
                 done();
-            });
+            }).catch(e => console.error(e));
         });
     });
     describe('#loadTransformer', () => {

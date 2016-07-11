@@ -8,9 +8,10 @@
  * 2016-06-26[17:36:31]:dependencies map
  * 2016-07-01[00:05:53]:fixed isbinary
  * 2016-07-04[23:14:52]:use binary extension;add rimraf
+ * 2016-07-11[11:42:55]:upgrade stream to support multiple files transforming
  *
  * @author yanni4night@gmail.com
- * @version 0.0.12
+ * @version 0.0.13
  * @since 0.0.1
  */
 'use strict';
@@ -358,14 +359,14 @@ class Panto extends EventEmitter {
                 if(this._streams[j].isRest()){
                     restStreamIdxes.push(j);
                 }
-                if (this._streams[j].fix(filesShouldBeTransformedAgain[i])) {
+                if (this._streams[j].push(filesShouldBeTransformedAgain[i])) {
                     matched = true;
                 }
             }
 
             if (!matched) {
                 restStreamIdxes.forEach(restStreamIdx => {
-                    this._streams[restStreamIdx].fix(filesShouldBeTransformedAgain[i], true);
+                    this._streams[restStreamIdx].push(filesShouldBeTransformedAgain[i], true);
                 });
             }
         }
