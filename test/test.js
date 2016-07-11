@@ -84,39 +84,59 @@ describe('panto', () => {
         it('should pick the rest', done => {
             const restFiles = [];
 
-            class RestTransformer extends Transformer {
+            class FinalTransformer extends Transformer {
                 _transform(file) {
-                    restFiles.push(file);
-                    return Promise.resolve(file);
+                    this.options.collection.push(file);
+                    return super._transform(file);
                 }
             }
+
             const jsFiles = [];
-            class JsTransformer extends Transformer {
-                _transform(file) {
-                    jsFiles.push(file);
-                    return Promise.resolve(file);
+            const cssFiles = [];
+
+            class CssTransformer extends Transformer {
+                transformAll(files) {
+                    const merged = files.map(file => (file.content || file.filename)).join(
+                        '');
+                    return Promise.resolve([{
+                        filename: 'merge.css',
+                        content: merged
+                    }]);
+                }
+                isTorrential() {
+                    return true;
                 }
             }
 
             panto.setOptions({
-                cwd: __dirname + '/..'
+                cwd: __dirname + '/fixtures/'
             });
 
             panto.clear();
 
             assert.deepEqual(panto._streams.length, 0, 'steams cleared');
 
-            panto.rest().pipe(new RestTransformer()).end('rest');
-            panto.pick('**/*.js').pipe(new JsTransformer()).end('*.js');
-            panto.pick('**/*.{md,json}').end('*.md');
+            panto.rest().pipe(new FinalTransformer({
+                collection: restFiles
+            })).end('rest');
+
+            panto.pick('**/*.js').pipe(new FinalTransformer({
+                collection: jsFiles
+            })).end('*.js');
+            panto.pick('**/*.css').pipe(new CssTransformer()).pipe(new FinalTransformer({
+                collection: cssFiles
+            })).end('*.css');
 
             panto.build().then(() => {
-                assert.ok(restFiles.some(file => file.filename === 'LICENSE'),
-                    '"LICENSE" rested');
-                assert.ok(jsFiles.some(file => file.filename === 'index.js'),
-                    '"index.js" picked');
-                assert.ok(jsFiles.some(file => file.filename === 'test/test.js'),
-                    '"test/test.js" picked');
+                assert.ok(restFiles.some(file => file.filename === 'README.md'),
+                    '"README.md" rested');
+                assert.ok(jsFiles.some(file => file.filename === 'javascripts/a.js'),
+                    '"javascripts/a.js" picked');
+                assert.ok(jsFiles.some(file => file.filename === 'javascripts/b.js'),
+                    '"javascripts/b.js" picked');
+
+                assert.ok(cssFiles.some(file => file.filename ===
+                    'merge.css'), '"merge.css" created');
             }).then(() => {
                 done();
             }).catch(e => console.error(e));
