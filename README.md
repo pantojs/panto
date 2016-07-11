@@ -1,5 +1,5 @@
 # PantoJS
-[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
+[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url] [![Stories in Ready][waffle-image]][waffle-url]
 
 _**[PantoJS](http://pantojs.xyz/)**_ is an ambitious file-transforming task runner. It supports simultaneous & furcal transforming streams, incremental transforming and stream nodes cache, which make file-transforming much flexible and fast. See <http://pantojs.xyz/> for more details.
 
@@ -49,3 +49,5 @@ panto.bar(...)
 [david-dm-dev-image]:https://david-dm.org/pantojs/panto/dev-status.svg
 [coveralls-image]:https://coveralls.io/repos/github/pantojs/panto/badge.svg?branch=master
 [coveralls-url]:https://coveralls.io/github/pantojs/panto?branch=master
+[waffle-image]:https://badge.waffle.io/pantojs/panto.png?label=ready&title=Ready
+[waffle-url]:https://waffle.io/pantojs/panto
