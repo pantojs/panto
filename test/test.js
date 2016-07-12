@@ -6,13 +6,15 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.13
+ * @version 0.0.15
  * @since 0.0.1
  */
 'use strict';
+
 const panto = require('../');
 const assert = require('assert');
 const Transformer = require('panto-transformer');
+const Stream = require('panto-stream');
 const {
     isFunction
 } = require('lodash');
@@ -73,7 +75,7 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname
             });
-            assert.ok(panto.pick('*.js').push({
+            assert.ok(panto.pick('*.js').end().push({
                 filename: 'test.js',
                 cmd: 'add'
             }), 'match "test.js"');
@@ -118,14 +120,14 @@ describe('panto', () => {
 
             panto.rest().pipe(new FinalTransformer({
                 collection: restFiles
-            }));
+            })).end('rest');
 
             panto.pick('**/*.js').pipe(new FinalTransformer({
                 collection: jsFiles
-            }));
+            })).end('*.js');
             panto.pick('**/*.css').pipe(new CssTransformer()).pipe(new FinalTransformer({
                 collection: cssFiles
-            }));
+            })).end('*.css');
 
             panto.build().then(() => {
                 assert.ok(restFiles.some(file => file.filename === 'README.md'),
@@ -146,8 +148,8 @@ describe('panto', () => {
         it('should load the Transformer', () => {
             class Foo {}
             panto.loadTransformer('foo', Foo);
-            assert.ok(isFunction(panto.foo), '"panto.foo" is function');
-            assert.ok(panto.foo() instanceof Foo, '"panto.foo()" is an instance of "Foo"');
+            assert.ok(isFunction(new Stream().foo), '"new Stream().foo" is function');
+            assert.ok(new Stream().foo() instanceof Foo, '"new Stream().foo()" is an instance of "Foo"');
         });
     });
 });

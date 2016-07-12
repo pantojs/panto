@@ -11,7 +11,7 @@
  * 2016-07-11[11:42:55]:upgrade stream to support multiple files transforming
  *
  * @author yanni4night@gmail.com
- * @version 0.0.13
+ * @version 0.0.15
  * @since 0.0.1
  */
 'use strict';
@@ -140,7 +140,9 @@ class Panto extends EventEmitter {
             throw new Error(`A string pattern is required to pick up some files`);
         }
         const stream = new Stream(null, pattern);
-        this._streams.push(stream);
+        stream.on('end', leaf => {
+            this._streams.push(leaf);
+        });
         return stream;
     }
     /**
@@ -150,7 +152,9 @@ class Panto extends EventEmitter {
      */
     rest() {
         const restStream = new Stream(null, null);
-        this._streams.push(restStream);
+        restStream.on('end', leaf => {
+            this._streams.push(leaf);
+        });
         return restStream;
     }
     /**
@@ -161,6 +165,7 @@ class Panto extends EventEmitter {
     clear() {
         this._streams.splice(0);
         this._dependencies.clear();
+
         return this;
     }
     /**
@@ -183,11 +188,11 @@ class Panto extends EventEmitter {
     loadTransformer(name, transformer) {
         if (!transformer) {
             let T = require(`panto-transformer-${name.toLowerCase()}`);
-            this[camelCase(name)] = opts => {
+            Stream.prototype[camelCase(name)] = opts => {
                 return new T(opts);
             };
         } else {
-            this[camelCase(name)] = opts => {
+            Stream.prototype[camelCase(name)] = opts => {
                 return new transformer(opts);
             };
         }
@@ -376,11 +381,6 @@ class Panto extends EventEmitter {
  */
 const panto = new Panto();
 
-Object.defineProperty(global, 'panto', {
-    value: panto,
-    enumerable: true,
-    writable: false,
-    configurable: false
-});
+defineFrozenProperty(global, 'panto', panto, true);
 
 module.exports = panto;
