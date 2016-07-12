@@ -73,7 +73,7 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname
             });
-            assert.ok(panto.pick('*.js').end().push({
+            assert.ok(panto.pick('*.js').push({
                 filename: 'test.js',
                 cmd: 'add'
             }), 'match "test.js"');
@@ -118,14 +118,14 @@ describe('panto', () => {
 
             panto.rest().pipe(new FinalTransformer({
                 collection: restFiles
-            })).end('rest');
+            }));
 
             panto.pick('**/*.js').pipe(new FinalTransformer({
                 collection: jsFiles
-            })).end('*.js');
+            }));
             panto.pick('**/*.css').pipe(new CssTransformer()).pipe(new FinalTransformer({
                 collection: cssFiles
-            })).end('*.css');
+            }));
 
             panto.build().then(() => {
                 assert.ok(restFiles.some(file => file.filename === 'README.md'),

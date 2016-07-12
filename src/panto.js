@@ -140,9 +140,7 @@ class Panto extends EventEmitter {
             throw new Error(`A string pattern is required to pick up some files`);
         }
         const stream = new Stream(null, pattern);
-        stream.on('end', leaf => {
-            this._streams.push(leaf);
-        });
+        this._streams.push(stream);
         return stream;
     }
     /**
@@ -152,9 +150,7 @@ class Panto extends EventEmitter {
      */
     rest() {
         const restStream = new Stream(null, null);
-        restStream.on('end', leaf => {
-            this._streams.push(leaf);
-        });
+        this._streams.push(restStream);
         return restStream;
     }
     /**
@@ -165,7 +161,6 @@ class Panto extends EventEmitter {
     clear() {
         this._streams.splice(0);
         this._dependencies.clear();
-
         return this;
     }
     /**
