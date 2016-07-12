@@ -9,9 +9,10 @@
  * 2016-07-01[00:05:53]:fixed isbinary
  * 2016-07-04[23:14:52]:use binary extension;add rimraf
  * 2016-07-11[11:42:55]:upgrade stream to support multiple files transforming
+ * 2016-07-12[14:15:12]:new loadTransformer
  *
  * @author yanni4night@gmail.com
- * @version 0.0.15
+ * @version 0.0.16
  * @since 0.0.1
  */
 'use strict';
@@ -188,12 +189,12 @@ class Panto extends EventEmitter {
     loadTransformer(name, transformer) {
         if (!transformer) {
             let T = require(`panto-transformer-${name.toLowerCase()}`);
-            Stream.prototype[camelCase(name)] = opts => {
-                return new T(opts);
+            Stream.prototype[camelCase(name)] = function(opts) {
+                return this.pipe(new T(opts));
             };
         } else {
-            Stream.prototype[camelCase(name)] = opts => {
-                return new transformer(opts);
+            Stream.prototype[camelCase(name)] = function(opts) {
+                return this.pipe(new transformer(opts));
             };
         }
         return this;

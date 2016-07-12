@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.15
+ * @version 0.0.16
  * @since 0.0.1
  */
 'use strict';
@@ -149,7 +149,7 @@ describe('panto', () => {
             class Foo {}
             panto.loadTransformer('foo', Foo);
             assert.ok(isFunction(new Stream().foo), '"new Stream().foo" is function');
-            assert.ok(new Stream().foo() instanceof Foo, '"new Stream().foo()" is an instance of "Foo"');
+            assert.ok(new Stream().foo() instanceof Stream, '"new Stream().foo()" is an instance of "Foo"');
         });
     });
 });
