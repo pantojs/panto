@@ -61,24 +61,31 @@ describe('panto', () => {
     describe('#getFiles', () => {
         it('should get the files', done => {
             panto.setOptions({
-                cwd: __dirname
+                cwd: __dirname + '/fixtures/'
             });
             panto.getFiles().then(filenames => {
-                assert.ok(filenames.indexOf('test.js') > -1,
-                    'match "test.js"');
+                assert.ok(filenames.indexOf('javascripts/a.js') > -1,
+                    'find "test.js"');
                 done();
             });
         });
     });
     describe('#pick', () => {
-        it('should pick the files', () => {
+        it('should pick the files', done => {
             panto.setOptions({
-                cwd: __dirname
+                cwd: __dirname + '/fixtures/'
             });
-            assert.ok(panto.pick('*.js').end().push({
-                filename: 'test.js',
+            
+            const s = panto.pick('**/*.js').end();
+            
+            s.push({
+                filename: 'javascripts/a.js',
                 cmd: 'add'
-            }), 'match "test.js"');
+            });
+            
+            s.flow().then(files => {
+                assert.ok(files.some(file => file.filename === 'javascripts/a.js'), 'match "javascripts/a.js"');
+            }).then(() => done());
         });
     });
     describe('#build#clear#rest', function () {
