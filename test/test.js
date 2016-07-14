@@ -182,6 +182,19 @@ describe('panto', () => {
             }).then(() => done()).catch(e => console.error(e));
         });
     });
+    describe('#watch', function () {
+        this.timeout(5e3);
+        it('', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+            const watcher = panto.watch();
+            watcher.close();
+            done();
+        });
+    });
     describe('#loadTransformer', () => {
         it('should load the Transformer', () => {
             class Foo {}
