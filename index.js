@@ -10,5 +10,18 @@
   * @since 0.0.1
   */
 'use strict';
+const defineFrozenProperty = require('define-frozen-property');
 
-module.exports = require('./src/panto');
+const Panto = require('./src/panto');
+
+/**
+ * Global Panto single instance.
+ * 
+ * @type {Panto}
+ * @global
+ */
+const panto = new Panto();
+
+defineFrozenProperty(global, 'panto', panto, true);
+
+module.exports = panto;

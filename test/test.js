@@ -11,6 +11,7 @@
  */
 'use strict';
 
+const Panto = require('../src/panto');
 const panto = require('../');
 const assert = require('assert');
 const Transformer = require('panto-transformer');
@@ -25,8 +26,8 @@ describe('panto', () => {
     describe('#constructor', () => {
         it('should define frozen "options"', () => {
             assert.ok('options' in panto, '"options" in panto');
-            assert.ok(!!panto.options.get('cwd'), '"cwd" in panto.options');
             assert.ok(!!panto.options.get('output'), '"output" in panto.options');
+            assert.deepEqual(panto.options.get('cwd'), process.cwd(), '"cwd" in panto.options');
             assert.ok('' === panto.options.get('binary_resource'),
                 '"binary_resource" in panto.options');
             assert.throws(() => {
@@ -52,43 +53,104 @@ describe('panto', () => {
     });
     describe('#setOptions#getOption', () => {
         it('should set to the options', () => {
+            const panto = new Panto();
             panto.setOptions({
                 cwd: 'xyz'
             });
             assert.deepEqual(panto.getOption('cwd'), 'xyz', '"panto.options.cwd" equals "xyz"');
+            assert.deepEqual(panto.getOption('noexist', 'default'), 'default', 'get default');
         });
     });
     describe('#getFiles', () => {
         it('should get the files', done => {
+            const panto = new Panto();
+
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
+
             panto.getFiles().then(filenames => {
                 assert.ok(filenames.indexOf('javascripts/a.js') > -1,
-                    'find "test.js"');
+                    'found "javascripts/a.js"');
+                assert.ok(filenames.indexOf('javascripts/b.js') > -1,
+                    'found "javascripts/b.js"');
                 done();
             });
         });
     });
     describe('#pick', () => {
         it('should pick the files', done => {
+            const panto = new Panto();
+
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
-            
-            const s = panto.pick('**/*.js').end();
-            
+
+            const s = panto.pick('**/*.js').end('js');
+
             s.push({
                 filename: 'javascripts/a.js',
                 cmd: 'add'
             });
-            
+
             s.flow().then(files => {
-                assert.ok(files.some(file => file.filename === 'javascripts/a.js'), 'match "javascripts/a.js"');
+                assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
+                    'match "javascripts/a.js"');
             }).then(() => done());
         });
     });
-    describe('#build#clear#rest', function () {
+
+    describe('#build', function () {
+        this.timeout(2e3);
+        it('should get all the files', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+
+            panto.pick('**/*.js').end('js');
+            panto.pick('**/*.css').end('css');
+
+            panto.build().then(files => {
+                assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
+                    'match "javascripts/a.js"');
+                assert.ok(files.some(file => file.filename === 'javascripts/b.js'),
+                    'match "javascripts/a.js"');
+                assert.ok(files.some(file => file.filename === 'stylesheets/a.css'),
+                    'match "stylesheets/a.css"');
+                assert.ok(files.some(file => file.filename === 'stylesheets/b.css'),
+                    'match "stylesheets/b.css"');
+            }).then(() => done());
+        });
+    });
+
+    describe('#clear', function () {
+        this.timeout(2e3);
+        it('should clear streams', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+
+            panto.pick('**/*.js').end('js');
+
+            panto.build().then(files => {
+                assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
+                    'match "javascripts/a.js"');
+                assert.ok(files.some(file => file.filename === 'javascripts/b.js'),
+                    'match "javascripts/a.js"');
+            }).then(() => {
+                assert.deepEqual(panto.clear(), panto, 'clear() return self');
+                return panto.build();
+            }).then(files => {
+                assert.deepEqual(files, [], 'no files due to no streams');
+            }).then(() => done());
+        });
+    });
+
+    describe('#rest', function () {
         this.timeout(3e3);
         it('should pick the rest', done => {
             const restFiles = [];
@@ -100,55 +162,24 @@ describe('panto', () => {
                 }
             }
 
-            const jsFiles = [];
-            const cssFiles = [];
-
-            class CssTransformer extends Transformer {
-                transformAll(files) {
-                    const merged = files.map(file => (file.content || file.filename)).join(
-                        '');
-                    return Promise.resolve([{
-                        filename: 'merge.css',
-                        content: merged
-                    }]);
-                }
-                isTorrential() {
-                    return true;
-                }
-            }
+            const panto = new Panto();
 
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
 
-            panto.clear();
-
-            assert.deepEqual(panto._streams.length, 0, 'steams cleared');
 
             panto.rest().pipe(new FinalTransformer({
                 collection: restFiles
             })).end('rest');
 
-            panto.pick('**/*.js').pipe(new FinalTransformer({
-                collection: jsFiles
-            })).end('*.js');
-            panto.pick('**/*.css').pipe(new CssTransformer()).pipe(new FinalTransformer({
-                collection: cssFiles
-            })).end('*.css');
+            panto.pick('**/*.js').end('*.js');
+            panto.pick('**/*.css').end('*.css');
 
             panto.build().then(() => {
                 assert.ok(restFiles.some(file => file.filename === 'README.md'),
                     '"README.md" rested');
-                assert.ok(jsFiles.some(file => file.filename === 'javascripts/a.js'),
-                    '"javascripts/a.js" picked');
-                assert.ok(jsFiles.some(file => file.filename === 'javascripts/b.js'),
-                    '"javascripts/b.js" picked');
-
-                assert.ok(cssFiles.some(file => file.filename ===
-                    'merge.css'), '"merge.css" created');
-            }).then(() => {
-                done();
-            }).catch(e => console.error(e));
+            }).then(() => done()).catch(e => console.error(e));
         });
     });
     describe('#loadTransformer', () => {
@@ -156,7 +187,8 @@ describe('panto', () => {
             class Foo {}
             panto.loadTransformer('foo', Foo);
             assert.ok(isFunction(new Stream().foo), '"new Stream().foo" is function');
-            assert.ok(new Stream().foo() instanceof Stream, '"new Stream().foo()" is an instance of "Foo"');
+            assert.ok(new Stream().foo() instanceof Stream,
+                '"new Stream().foo()" is an instance of "Foo"');
         });
     });
 });

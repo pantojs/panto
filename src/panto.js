@@ -79,9 +79,9 @@ class Panto extends EventEmitter {
     getFiles() {
         return new Promise((resolve, reject) => {
             glob('**/*', {
-                cwd: this.options.get('cwd'),
+                cwd: this.getOption('cwd'),
                 nodir: true,
-                ignore: `${this.options.get('output')}/**/*`
+                ignore: `${this.getOption('output')}/**/*`
             }, (err, filenames) => {
                 if (err) {
                     reject(err);
@@ -235,8 +235,8 @@ class Panto extends EventEmitter {
      * @return {Panto} this
      */
     watch() {
-        const cwd = this.options.get('cwd');
-        const output = this.options.get('output');
+        const cwd = this.getOption('cwd', process.cwd());
+        const output = this.getOption('output', 'output');
 
         this.log.info('=================================================');
         this.log.info(`Watching ${cwd}...`);
@@ -268,7 +268,7 @@ class Panto extends EventEmitter {
                     cmd: 'remove'
                 });
             });
-        return this;
+        return watcher;
     }
     /**
      * Walk all the streams and flow.
@@ -374,14 +374,5 @@ class Panto extends EventEmitter {
         return this.walkStream();
     }
 }
-/**
- * Global Panto single instance.
- * 
- * @type {Panto}
- * @global
- */
-const panto = new Panto();
 
-defineFrozenProperty(global, 'panto', panto, true);
-
-module.exports = panto;
+module.exports = Panto;
