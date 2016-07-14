@@ -11,15 +11,17 @@ panto.setOptions({
 });
 
 // Isomorphic JavaScript
-const srcJs = panto.pick('**/*.{js,jsx}').pipe(panto.read());
-srcJs.pipe(panto.babel(clientBabelOptions)).pipe(panto.write()).end();
-srcJs.pipe(panto.babel(serverBabelOptions)).pipe(panto.write()).end();
+const srcJs = panto.pick('**/*.{js,jsx}').read();
+
+srcJs.babel(clientBabelOptions).write().end();
+
+srcJs.babel(serverBabelOptions).write().end();
 
 // Less
-panto.pick('**/*.less').pipe(panto.read()).pipe(panto.less()).pipe(panto.write()).end();
+panto.pick('**/*.less').read().less().write().end();
 
 // Others
-panto.rest().pipe(panto.read()).pipe(panto.filter()).pipe(panto.write()).end();
+panto.rest().read().filter().write().end();
 
 panto.build().then(() => {
     panto.watch();
@@ -34,8 +36,7 @@ Create your own _transformer_, just extend [panto-transformer](https://github.co
 panto.loadTransformer('foo') // panto-transformer-foo
 panto.loadTransformer('bar', require('my-bar-transformer'))
 
-panto.foo(...)
-panto.bar(...)
+panto.pick('*.js').foo(...).bar(...)
 ```
 
 [npm-url]: https://npmjs.org/package/panto
