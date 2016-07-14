@@ -236,7 +236,7 @@ class Panto extends EventEmitter {
      */
     watch() {
         const cwd = this.options.get('cwd');
-        const output = this.options.get('ouput');
+        const output = this.options.get('output');
 
         this.log.info('=================================================');
         this.log.info(`Watching ${cwd}...`);
