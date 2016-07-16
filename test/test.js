@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.16
+ * @version 0.0.20
  * @since 0.0.1
  */
 'use strict';

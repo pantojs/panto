@@ -12,7 +12,7 @@
  * 2016-07-12[14:15:12]:new loadTransformer
  *
  * @author yanni4night@gmail.com
- * @version 0.0.16
+ * @version 0.0.20
  * @since 0.0.1
  */
 'use strict';
