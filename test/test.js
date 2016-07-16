@@ -182,7 +182,7 @@ describe('panto', () => {
             }).then(() => done()).catch(e => console.error(e));
         });
     });
-    describe('#watch', function () {
+    describe('#onFileDiff', function () {
         this.timeout(5e3);
         it('', done => {
             const panto = new Panto();
@@ -190,9 +190,67 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
-            const watcher = panto.watch();
-            watcher.close();
-            done();
+            panto.pick('**/*.js').end('*.js');
+            panto.rest().end('rest');
+            panto.build().then(() => {
+                return panto.onFileDiff({
+                    filename: 'javascripts/c.js',
+                    cmd: 'add'
+                });
+            }).then(files => {
+                assert.ok(files.some(file => file.filename === 'javascripts/c.js'),
+                    '"javascripts/c.js" added');
+                return panto.onFileDiff({
+                    filename: 'javascripts/c.js',
+                    cmd: 'remove'
+                });
+            }).then(files => {
+                assert.ok(!files.some(file => file.filename === 'javascripts/c.js'),
+                    '"javascripts/c.js" removed');
+            }).then(() => {
+                return panto.onFileDiff({
+                    filename: 'rest.txt',
+                    cmd: 'add'
+                });
+            }).then(files => {
+                assert.ok(files.some(file => file.filename === 'rest.txt'),
+                    '"rest.txt" added');
+            }).then(() => done()).catch(e => console.error(e));
+
+        });
+    });
+    describe('#reportDependencies', function () {
+        it('should transform dependencies too', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+
+            let jsInvoked = 0;
+
+            class JsTransformer extends Transformer {
+                _transform(file) {
+                    jsInvoked += 1;
+                    return super._transform(file);
+                }
+                isTorrential() {
+                    return false;
+                }
+            }
+
+            panto.pick('**/*.css').end('*.css');
+            panto.pick('**/*.js').pipe(new JsTransformer()).end('*.js');
+            panto.build().then(() => {
+                panto.reportDependencies('javascripts/a.js', 'stylesheets/a.css');
+
+                return panto.onFileDiff({
+                    filename: 'stylesheets/a.css',
+                    cmd: 'change'
+                });
+            }).then(() => {
+                assert.deepEqual(jsInvoked, 3);
+            }).then(() => done()).catch(e => console.error(e));
         });
     });
     describe('#loadTransformer', () => {
