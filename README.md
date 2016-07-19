@@ -1,7 +1,7 @@
-# PantoJS
+# PantoJS<sup>®</sup>
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url] [![Stories in Ready][waffle-image]][waffle-url]
 
-_**[PantoJS](http://pantojs.xyz/)**_ is an ***extreme flexible*** file-transforming task runner built for web front-ended projects, but is suitable for any kinds of building tasks. See <http://pantojs.xyz/> for more details.
+_**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extreme flexible*** file-transforming task runner built for web front-ended projects, but is suitable for any kinds of building tasks. See <http://pantojs.xyz/> for more details.
 
 ```js
 const panto = require('panto');
