@@ -23,6 +23,7 @@ const EventEmitter = require('events');
 const chokidar = require('chokidar');
 const glob = require('glob');
 const lodash = require('lodash');
+const table = require('table').default;
 
 const defineFrozenProperty = require('define-frozen-property');
 
@@ -292,24 +293,46 @@ class Panto extends EventEmitter {
      * @return {[type]} [description]
      */
     walkStream() {
+
+        const stdout = process.stdout;
+        const tableData = [];
+
+        this._streams.forEach(({stream}, i) => {
+            tableData[i] = [stream.tag, 'ready', '-'];
+        });
+
+        const print = () => {
+            if (!stdout.isTTY) {
+                return;
+            }
+
+            stdout.cursorTo(0);
+            stdout.write(table(tableData));
+            stdout.clearLine(1);
+        };
+
+        const refreshInterval = setInterval(print, 1e3);
+
         return new Promise((resolve, reject) => {
             let ret = [];
-            const startTime = process.hrtime();
+            //const startTime = process.hrtime();
             let startStreamIdx = 0;
             
             const _walkStream = () => {
                 if (startStreamIdx === this._streams.length) {
-                    const diff = process.hrtime(startTime);
-                    const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
+                    //const diff = process.hrtime(startTime);
+                    //const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
 
-                    this.log.info(`Complete in ${totalMs}ms`);
-
+                    //this.log.info(`Complete in ${totalMs}ms`);
+                    clearInterval(refreshInterval);
                     resolve(flattenDeep(ret));
                 } else {
                     const {stream, files} = this._streams[startStreamIdx];
                     let streamStartTime = process.hrtime();
-
-                    this.log.debug(`${stream.tag}...start[${1 + startStreamIdx}/${this._streams.length}]`);
+                    const idx = startStreamIdx;
+                    tableData[idx][1] = 'running';
+                    print();
+                    //this.log.debug(`${stream.tag}...start[${1 + startStreamIdx}/${this._streams.length}]`);
 
                     stream.flow(files.values())
                         .then(
@@ -317,7 +340,10 @@ class Panto extends EventEmitter {
                                 let streamDiff = process.hrtime(streamStartTime);
                                 const streamMs = parseInt(streamDiff[0] * 1e3 + streamDiff[1] / 1e6, 10);
 
-                                this.log.debug(`${stream.tag}...complete in ${streamMs}ms`);
+                                tableData[idx][1] = `complete`;
+                                tableData[idx][2] = `${streamMs}ms`;
+                                print();
+                                //this.log.debug(`${stream.tag}...complete in ${streamMs}ms`);
 
                                 ret.push(data);
                                 _walkStream();

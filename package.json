@@ -39,7 +39,8 @@
     "panto-file-utils": "^0.1.0",
     "panto-logger": "^0.2.1",
     "panto-options": "^0.1.0",
-    "panto-stream": "^0.6.0"
+    "panto-stream": "^0.6.1",
+    "table": "^3.7.8"
   },
   "devDependencies": {
     "coveralls": "^2.11.9",
