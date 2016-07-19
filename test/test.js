@@ -16,9 +16,7 @@ const panto = require('../');
 const assert = require('assert');
 const Transformer = require('panto-transformer');
 const Stream = require('panto-stream');
-const {
-    isFunction
-} = require('lodash');
+const isFunction = require('lodash/isFunction');
 
 /*global describe,it*/
 /*eslint no-console: ["error", { allow: ["error"] }] */
@@ -78,27 +76,6 @@ describe('panto', () => {
             });
         });
     });
-    describe('#pick', () => {
-        it('should pick the files', done => {
-            const panto = new Panto();
-
-            panto.setOptions({
-                cwd: __dirname + '/fixtures/'
-            });
-
-            const s = panto.pick('**/*.js').end('js');
-
-            s.push({
-                filename: 'javascripts/a.js',
-                cmd: 'add'
-            });
-
-            s.flow().then(files => {
-                assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
-                    'match "javascripts/a.js"');
-            }).then(() => done());
-        });
-    });
 
     describe('#build', function () {
         this.timeout(2e3);
@@ -109,8 +86,8 @@ describe('panto', () => {
                 cwd: __dirname + '/fixtures/'
             });
 
-            panto.pick('**/*.js').end('js');
-            panto.pick('**/*.css').end('css');
+            panto.pick('**/*.js');
+            panto.pick('**/*.css');
 
             panto.build().then(files => {
                 assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
@@ -134,7 +111,7 @@ describe('panto', () => {
                 cwd: __dirname + '/fixtures/'
             });
 
-            panto.pick('**/*.js').end('js');
+            panto.pick('**/*.js');
 
             panto.build().then(files => {
                 assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
@@ -169,12 +146,12 @@ describe('panto', () => {
             });
 
 
-            panto.rest().pipe(new FinalTransformer({
+            panto.rest().connect(new Stream(new FinalTransformer({
                 collection: restFiles
-            })).end('rest');
+            })));
 
-            panto.pick('**/*.js').end('*.js');
-            panto.pick('**/*.css').end('*.css');
+            panto.pick('**/*.js');
+            panto.pick('**/*.css');
 
             panto.build().then(() => {
                 assert.ok(restFiles.some(file => file.filename === 'README.md'),
@@ -190,8 +167,8 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
-            panto.pick('**/*.js').end('*.js');
-            panto.rest().end('rest');
+            panto.pick('**/*.js');
+            panto.rest();
             panto.build().then(() => {
                 return panto.onFileDiff({
                     filename: 'javascripts/c.js',
@@ -239,11 +216,11 @@ describe('panto', () => {
                 }
             }
 
-            panto.pick('**/*.css').end('*.css');
-            panto.pick('**/*.js').pipe(new JsTransformer()).end('*.js');
+            panto.pick('**/*.css');
+            panto.pick('**/*.js').connect(new Stream(new JsTransformer()));
+
             panto.build().then(() => {
                 panto.reportDependencies('javascripts/a.js', 'stylesheets/a.css');
-
                 return panto.onFileDiff({
                     filename: 'stylesheets/a.css',
                     cmd: 'change'
