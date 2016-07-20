@@ -13,6 +13,7 @@
 
 const Panto = require('../src/panto');
 const panto = require('../');
+const fs = require('fs');
 const assert = require('assert');
 const Transformer = require('panto-transformer');
 const Stream = require('panto-stream');
@@ -99,6 +100,42 @@ describe('panto', () => {
                 assert.ok(files.some(file => file.filename === 'stylesheets/b.css'),
                     'match "stylesheets/b.css"');
             }).then(() => done());
+        });
+        it('should support equative src&output', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname,
+                src: '/fixtures/',
+                output: 'out'
+            });
+
+            const filename = `r/r-${Date.now()}.txt`;
+
+            panto.file.write(filename, 'out').then(() => {
+                assert.ok(fs.existsSync(__dirname + '/out/' + filename));
+                return panto.file.rimraf('r', {
+                    force: true
+                });
+            }).then(() => done()).catch(e => console.error(e));
+        });
+        it('should support serial src&output', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname,
+                src: '/fixtures/',
+                output: 'fixtures/out'
+            });
+
+            const filename = `r/r-${Date.now()}.txt`;
+
+            panto.file.write(filename, 'out').then(() => {
+                assert.ok(fs.existsSync(__dirname + '/fixtures/out/' + filename));
+                return panto.file.rimraf('r', {
+                    force: true
+                });
+            }).then(() => done()).catch(e => console.error(e));
         });
     });
 
