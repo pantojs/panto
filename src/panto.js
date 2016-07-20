@@ -13,7 +13,7 @@
  * 2016-07-19[10:35:28]:new stream
  *
  * @author yanni4night@gmail.com
- * @version 0.0.21
+ * @version 0.0.22
  * @since 0.0.1
  */
 'use strict';
