@@ -242,7 +242,15 @@ class Panto extends EventEmitter {
      * @return {Promise}
      */
     build() {
-        this._streams.forEach(({stream}) => stream.freeze());
+        // remove output directory first
+        this.file.rimraf('.', {
+            force: true
+        });
+
+        this._streams.forEach(({
+            stream
+        }) => stream.freeze());
+
         return this.getFiles().then(filenames => {
             return this.onFileDiff(...filenames.map(filename => ({
                 filename,
