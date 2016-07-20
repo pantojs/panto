@@ -293,8 +293,6 @@ class Panto extends EventEmitter {
      * @return {[type]} [description]
      */
     walkStream() {
-
-        const stdout = process.stdout;
         const tableData = [];
 
         this._streams.forEach(({stream}, i) => {
@@ -302,38 +300,32 @@ class Panto extends EventEmitter {
         });
 
         const print = () => {
-            if (!stdout.isTTY) {
-                return;
-            }
-
-            stdout.cursorTo(0);
-            stdout.write(table(tableData));
-            stdout.clearLine(1);
+            const data = table(tableData);
+            this.log.info('\n' + data);
         };
 
-        const refreshInterval = setInterval(print, 1e3);
-
         return new Promise((resolve, reject) => {
-            let ret = [];
-            //const startTime = process.hrtime();
+
+            const ret = [];
+            const startTime = process.hrtime();
             let startStreamIdx = 0;
             
             const _walkStream = () => {
                 if (startStreamIdx === this._streams.length) {
-                    //const diff = process.hrtime(startTime);
-                    //const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
+                    const diff = process.hrtime(startTime);
+                    const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
+                    tableData.push(['Total', `complete`, `${totalMs}ms`]);
+                    print();
 
-                    //this.log.info(`Complete in ${totalMs}ms`);
-                    clearInterval(refreshInterval);
                     resolve(flattenDeep(ret));
                 } else {
                     const {stream, files} = this._streams[startStreamIdx];
                     let streamStartTime = process.hrtime();
                     const idx = startStreamIdx;
                     tableData[idx][1] = 'running';
-                    print();
-                    //this.log.debug(`${stream.tag}...start[${1 + startStreamIdx}/${this._streams.length}]`);
 
+                    this.log.info(`Processing ${stream.tag}...[${1 + startStreamIdx}/${this._streams.length}]`);
+                    
                     stream.flow(files.values())
                         .then(
                             data => {
@@ -342,8 +334,6 @@ class Panto extends EventEmitter {
 
                                 tableData[idx][1] = `complete`;
                                 tableData[idx][2] = `${streamMs}ms`;
-                                print();
-                                //this.log.debug(`${stream.tag}...complete in ${streamMs}ms`);
 
                                 ret.push(data);
                                 _walkStream();
@@ -388,7 +378,7 @@ class Panto extends EventEmitter {
             allFileNamesMessage = allFileNames.join('\n');
         }
         // Show max 10 files
-        this.log.data(`Flowing files:\n${allFileNamesMessage}`);
+        this.log.debug(`Flowing files:\n${allFileNamesMessage}`);
 
         // Rest streams may be more than one
         const restStreamIdxes = [];

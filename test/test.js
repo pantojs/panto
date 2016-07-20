@@ -146,7 +146,7 @@ describe('panto', () => {
             });
 
 
-            panto.rest().connect(new Stream(new FinalTransformer({
+            panto.rest().tag('rest').connect(new Stream(new FinalTransformer({
                 collection: restFiles
             })));
 
