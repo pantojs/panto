@@ -10,9 +10,10 @@
  * 2016-07-04[23:14:52]:use binary extension;add rimraf
  * 2016-07-11[11:42:55]:upgrade stream to support multiple files transforming
  * 2016-07-12[14:15:12]:new loadTransformer
+ * 2016-07-19[10:35:28]:new stream
  *
  * @author yanni4night@gmail.com
- * @version 0.0.20
+ * @version 0.0.21
  * @since 0.0.1
  */
 'use strict';
@@ -22,6 +23,7 @@ const EventEmitter = require('events');
 const chokidar = require('chokidar');
 const glob = require('glob');
 const lodash = require('lodash');
+const table = require('table').default;
 
 const defineFrozenProperty = require('define-frozen-property');
 
@@ -30,6 +32,7 @@ const Stream = require('panto-stream');
 const Options = require('panto-options');
 const FileUtils = require('panto-file-utils');
 const DependencyMap = require('panto-dependency-map');
+const FileCollection = require('./file-collection');
 
 const {isString, camelCase, flattenDeep} = lodash;
 
@@ -131,7 +134,7 @@ class Panto extends EventEmitter {
         return this;
     }
     /**
-     * Select some files matched the pattern.
+     * Pick some files matched the pattern.
      * 
      * @param  {string} pattern
      * @return {Stream}
@@ -140,23 +143,36 @@ class Panto extends EventEmitter {
         if (!pattern || !isString(pattern)) {
             throw new Error(`A string pattern is required to pick up some files`);
         }
-        const stream = new Stream(null, pattern);
-        stream.on('end', leaf => {
-            this._streams.push(leaf);
+        const stream = new Stream();
+        this._streams.push({
+            stream,
+            pattern,
+            files: new FileCollection()
         });
         return stream;
     }
     /**
-     * Get the files not selected.
+     * Alias for pick.
+     * 
+     * @param  {...string}
+     * @return {Stream}
+     */
+    $(...args) {
+        return this.pick(...args);
+    }
+    /**
+     * Get the files not picked.
      * 
      * @return {Stream}
      */
     rest() {
-        const restStream = new Stream(null, null);
-        restStream.on('end', leaf => {
-            this._streams.push(leaf);
+        const stream = new Stream();
+        this._streams.push({
+            stream,
+            pattern: null,
+            files: new FileCollection()
         });
-        return restStream;
+        return stream;
     }
     /**
      * Clear all the selected/stream.
@@ -190,11 +206,11 @@ class Panto extends EventEmitter {
         if (!transformer) {
             let T = require(`panto-transformer-${name.toLowerCase()}`);
             Stream.prototype[camelCase(name)] = function(opts) {
-                return this.pipe(new T(opts));
+                return this.connect(new Stream(new T(opts)));
             };
         } else {
             Stream.prototype[camelCase(name)] = function(opts) {
-                return this.pipe(new transformer(opts));
+                return this.connect(new Stream(new transformer(opts)));
             };
         }
         return this;
@@ -211,6 +227,7 @@ class Panto extends EventEmitter {
      * @return {Promise}
      */
     build() {
+        this._streams.forEach(({stream}) => stream.freeze());
         return this.getFiles().then(filenames => {
             return this.onFileDiff(...filenames.map(filename => ({
                 filename,
@@ -276,8 +293,20 @@ class Panto extends EventEmitter {
      * @return {[type]} [description]
      */
     walkStream() {
+        const tableData = [];
+
+        this._streams.forEach(({stream}, i) => {
+            tableData[i] = [stream.tag, 'ready', '-'];
+        });
+
+        const print = () => {
+            const data = table(tableData);
+            this.log.info('\n' + data);
+        };
+
         return new Promise((resolve, reject) => {
-            let ret = [];
+
+            const ret = [];
             const startTime = process.hrtime();
             let startStreamIdx = 0;
             
@@ -285,23 +314,26 @@ class Panto extends EventEmitter {
                 if (startStreamIdx === this._streams.length) {
                     const diff = process.hrtime(startTime);
                     const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
-
-                    this.log.info(`Complete in ${totalMs}ms`);
+                    tableData.push(['Total', `complete`, `${totalMs}ms`]);
+                    print();
 
                     resolve(flattenDeep(ret));
                 } else {
-                    const stream = this._streams[startStreamIdx];
+                    const {stream, files} = this._streams[startStreamIdx];
                     let streamStartTime = process.hrtime();
+                    const idx = startStreamIdx;
+                    tableData[idx][1] = 'running';
 
-                    this.log.debug(`${stream.tag}...start[${1+startStreamIdx}/${this._streams.length}]`);
-
-                    stream.flow()
+                    this.log.info(`Processing ${stream.tag}...[${1 + startStreamIdx}/${this._streams.length}]`);
+                    
+                    stream.flow(files.values())
                         .then(
                             data => {
                                 let streamDiff = process.hrtime(streamStartTime);
                                 const streamMs = parseInt(streamDiff[0] * 1e3 + streamDiff[1] / 1e6, 10);
 
-                                this.log.debug(`${stream.tag}...complete in ${streamMs}ms`);
+                                tableData[idx][1] = `complete`;
+                                tableData[idx][2] = `${streamMs}ms`;
 
                                 ret.push(data);
                                 _walkStream();
@@ -346,7 +378,7 @@ class Panto extends EventEmitter {
             allFileNamesMessage = allFileNames.join('\n');
         }
         // Show max 10 files
-        this.log.data(`Flowing files:\n${allFileNamesMessage}`);
+        this.log.debug(`Flowing files:\n${allFileNamesMessage}`);
 
         // Rest streams may be more than one
         const restStreamIdxes = [];
@@ -354,20 +386,24 @@ class Panto extends EventEmitter {
         for (let i = 0; i < filesShouldBeTransformedAgain.length; ++i) {
             let matched = false;
 
-            this._dependencies.clear(filesShouldBeTransformedAgain[i].filename);
+            if('remove' === filesShouldBeTransformedAgain[i].cmd) {
+                this._dependencies.clear(filesShouldBeTransformedAgain[i].filename);
+            }
 
             for (let j = 0; j < this._streams.length; ++j) {
-                if(this._streams[j].isRest()){
+                let {stream, pattern, files} = this._streams[j];
+                if(null === pattern){
                     restStreamIdxes.push(j);
-                }
-                if (this._streams[j].push(filesShouldBeTransformedAgain[i])) {
+                } else if (this.file.match(filesShouldBeTransformedAgain[i].filename, pattern)) {
+                    files.update(filesShouldBeTransformedAgain[i]);
+                    stream.clearCache(filesShouldBeTransformedAgain[i].filename);
                     matched = true;
                 }
             }
 
             if (!matched) {
                 restStreamIdxes.forEach(restStreamIdx => {
-                    this._streams[restStreamIdx].push(filesShouldBeTransformedAgain[i], true);
+                    this._streams[restStreamIdx].files.update(filesShouldBeTransformedAgain[i], true);
                 });
             }
         }

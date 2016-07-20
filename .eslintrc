@@ -14,6 +14,7 @@
     },
     "globals": {
         "Promise": 1,
-        "panto": 1
+        "panto": 1,
+        "Map": 1
     }
 }
