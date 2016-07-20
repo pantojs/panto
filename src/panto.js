@@ -11,27 +11,30 @@
  * 2016-07-11[11:42:55]:upgrade stream to support multiple files transforming
  * 2016-07-12[14:15:12]:new loadTransformer
  * 2016-07-19[10:35:28]:new stream
+ * 2016-07-20[22:53:59]:support "src" option
  *
  * @author yanni4night@gmail.com
- * @version 0.0.22
+ * @version 0.0.23
  * @since 0.0.1
  */
 'use strict';
 
+const path = require('path');
 const EventEmitter = require('events');
 
 const chokidar = require('chokidar');
+const subdir = require('subdir');
 const glob = require('glob');
 const lodash = require('lodash');
 const table = require('table').default;
 
 const defineFrozenProperty = require('define-frozen-property');
-
 const logger = require('panto-logger');
 const Stream = require('panto-stream');
 const Options = require('panto-options');
 const FileUtils = require('panto-file-utils');
 const DependencyMap = require('panto-dependency-map');
+
 const FileCollection = require('./file-collection');
 
 const {isString, camelCase, flattenDeep} = lodash;
@@ -43,6 +46,7 @@ class Panto extends EventEmitter {
 
         const options = new Options({
             cwd: process.cwd(),
+            src: '.',
             output: 'output',
             binary_resource: ''
         });
@@ -80,12 +84,23 @@ class Panto extends EventEmitter {
      * @return {Promise}
      */
     getFiles() {
+        const src = this.getOption('src');
+        const cwd = this.getOption('cwd');
+        const output = this.getOption('output');
+
+        const globOptions = {
+            cwd: path.join(cwd, src),
+            nodir: true
+        };
+
+        // Ignore output
+        if (subdir(src, output)) {
+            let rel = path.relative(src, output);
+            globOptions.ignore = `${rel}/**/*`;
+        }
+
         return new Promise((resolve, reject) => {
-            glob('**/*', {
-                cwd: this.getOption('cwd'),
-                nodir: true,
-                ignore: `${this.getOption('output')}/**/*`
-            }, (err, filenames) => {
+            glob('**/*', globOptions, (err, filenames) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -252,18 +267,28 @@ class Panto extends EventEmitter {
      * @return {Panto} this
      */
     watch() {
-        const cwd = this.getOption('cwd', process.cwd());
-        const output = this.getOption('output', 'output');
+        const cwd = this.getOption('cwd');
+        const src = this.getOption('src');
+        const output = this.getOption('output');
 
-        this.log.info('=================================================');
-        this.log.info(`Watching ${cwd}...`);
-
-        const watcher = chokidar.watch(`${cwd}/**/*`, {
-            ignored: [`${output}/**/*`, /[\/\\]\./],
+        const watchDir = path.join(cwd, src);
+        
+        const watchOptions = {
             persistent: true,
             ignoreInitial: true,
-            cwd: cwd
-        });
+            cwd: watchDir
+        };
+
+        // Ignore output
+        if(subdir(src, output)) {
+            let rel = path.relative(src, output);
+            watchOptions.ignored = [`${rel}/**/*`, /^\./];
+        }
+
+        this.log.info(`Watching "${path.relative(process.cwd(), watchDir)}" for change...`);
+
+        const watcher = chokidar.watch(`**/*`, watchOptions);
+        
         watcher.on('add', path => {
                 this.log.info(`File ${path} has been added`);
                 this.onFileDiff({
