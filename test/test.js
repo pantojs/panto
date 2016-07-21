@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.22
+ * @version 0.0.24
  * @since 0.0.1
  */
 'use strict';
@@ -137,6 +137,17 @@ describe('panto', () => {
                 });
             }).then(() => done()).catch(e => console.error(e));
         });
+        it('should throw if src and output are same', () => {
+            const panto = new Panto();
+            panto.setOptions({
+                cwd: '.',
+                src: 'foo',
+                output: './foo'
+            });
+            assert.throws(() => {
+                panto.build();
+            }, 'throws error');
+        });
     });
 
     describe('#clear', function () {
@@ -181,7 +192,6 @@ describe('panto', () => {
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
-
 
             panto.rest().tag('rest').connect(new Stream(new FinalTransformer({
                 collection: restFiles
@@ -233,6 +243,20 @@ describe('panto', () => {
 
         });
     });
+    describe('#watch', () => {
+        it('should throw if src and output are same', () => {
+            const panto = new Panto();
+            panto.setOptions({
+                cwd: '.',
+                src: 'foo',
+                output: './foo'
+            });
+            assert.throws(() => {
+                panto.watch();
+            }, 'throws error');
+        });
+    });
+
     describe('#reportDependencies', function () {
         it('should transform dependencies too', done => {
             const panto = new Panto();

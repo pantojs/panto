@@ -1,6 +1,6 @@
 {
   "name": "panto",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "description": "PantoJS®️ is an extreme flexible file-transforming task runner",
   "main": "index.js",
   "scripts": {

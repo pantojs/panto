@@ -12,9 +12,10 @@
  * 2016-07-12[14:15:12]:new loadTransformer
  * 2016-07-19[10:35:28]:new stream
  * 2016-07-20[22:53:59]:support "src" option
+ * 2016-07-21[21:30:45]:throw error if src and output matches
  *
  * @author yanni4night@gmail.com
- * @version 0.0.23
+ * @version 0.0.24
  * @since 0.0.1
  */
 'use strict';
@@ -247,6 +248,14 @@ class Panto extends EventEmitter {
             force: true
         });
 
+        const src = this.getOption('src');
+        const cwd = this.getOption('cwd');
+        const output = this.getOption('output');
+
+        if (path.join(cwd, src) === path.join(cwd, output)) {
+            throw new Error(`src and output should be different`);
+        }
+
         this._streams.forEach(({
             stream
         }) => stream.freeze());
@@ -278,6 +287,10 @@ class Panto extends EventEmitter {
         const cwd = this.getOption('cwd');
         const src = this.getOption('src');
         const output = this.getOption('output');
+
+        if (path.join(cwd, src) === path.join(cwd, output)) {
+            throw new Error(`src and output should be different`);
+        }
 
         const watchDir = path.join(cwd, src);
         
