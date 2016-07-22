@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2016 pantojs.xyz
- * sieve.js
+ * panto.js
  *
  * changelog
  * 2016-06-21[18:46:42]:revised
@@ -15,7 +15,7 @@
  * 2016-07-21[21:30:45]:throw error if src and output matches
  *
  * @author yanni4night@gmail.com
- * @version 0.0.24
+ * @version 0.0.26
  * @since 0.0.1
  */
 'use strict';
@@ -38,7 +38,7 @@ const DependencyMap = require('panto-dependency-map');
 
 const FileCollection = require('./file-collection');
 
-const {isString, camelCase, flattenDeep} = lodash;
+const {isString, camelCase, flattenDeep, uniq} = lodash;
 
 /** Class representing a panto */
 class Panto extends EventEmitter {
@@ -416,7 +416,7 @@ class Panto extends EventEmitter {
             cmd: 'change'
         })));
 
-        let allFileNames = dependencyFileNames.concat(changedFileNames);
+        let allFileNames = uniq(dependencyFileNames.concat(changedFileNames));
         let allFileNamesMessage;
         if (allFileNames.length > 10) {
             allFileNamesMessage = allFileNames.slice(0, 10).join('\n') + `\n...and ${allFileNames.length-10} more`;

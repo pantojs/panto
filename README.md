@@ -4,6 +4,21 @@
 _**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extreme flexible*** file-transforming task runner built for web front-ended projects, but is suitable for any kinds of building tasks. See <http://pantojs.xyz/> for more details.
 
 ```js
+/*
+PantoJS can run quite complicated tasks more than you think!
+
+ 
+js-----------babel(client)--------|
+   |                              |
+   |                              |
+   |---------babel(server)--------|
+                                  |
+                                  |
+less---------less----------------write
+
+others-------ignore--------------copy
+*/
+
 const panto = require('panto');
 
 panto.setOptions({
@@ -23,7 +38,7 @@ srcJs.babel(serverBabelOptions).write();
 panto.pick('**/*.less').tag('less').read().less().write();
 
 // Others
-panto.rest().tag('others').read().ignore().write();
+panto.rest().tag('others').ignore().copy();
 
 panto.on('error', () => {})// any tasks error, for build & watch
     .on('complete', files => {})// tasks runnning complete, for build & watch
