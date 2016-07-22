@@ -7,30 +7,35 @@ _**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extreme flexible*** f
 const panto = require('panto');
 
 panto.setOptions({
-    cwd: 'your_project_dir'
+    cwd: 'your_project_dir',
+    src: 'src',
+    output: 'output' // Cannot be same to src
 });
 
 // Isomorphic JavaScript
-const srcJs = panto.pick('**/*.{js,jsx}').read();
+const srcJs = panto.pick('**/*.{js,jsx}').tag('js(x)').read();
 
 srcJs.babel(clientBabelOptions).write();
 
 srcJs.babel(serverBabelOptions).write();
 
 // Less
-panto.pick('**/*.less').read().less().write();
+panto.pick('**/*.less').tag('less').read().less().write();
 
 // Others
-panto.rest().read().filter().write();
+panto.rest().tag('others').read().ignore().write();
+
+panto.on('error', () => {})// any tasks error, for build & watch
+    .on('complete', files => {})// tasks runnning complete, for build & watch
 
 panto.build().then(() => {
     panto.watch();
 });
 ```
 
-Some official transformers: [read](https://github.com/pantojs/panto-transformer-read), [write](https://github.com/pantojs/panto-transformer-write), [babel](https://github.com/pantojs/panto-transformer-babel), [filter](https://github.com/pantojs/panto-transformer-filter), [ignore](https://github.com/pantojs/panto-transformer-ignore), [integrity](https://github.com/pantojs/panto-transformer-integrity), [less](https://github.com/pantojs/panto-transformer-less), [uglify](https://github.com/pantojs/panto-transformer-uglify), [stamp](https://github.com/pantojs/panto-transformer-stamp), [aspect](https://github.com/pantojs/panto-transformer-aspect).
+Some official transformers: [read](https://github.com/pantojs/panto-transformer-read), [write](https://github.com/pantojs/panto-transformer-write), [babel](https://github.com/pantojs/panto-transformer-babel), [filter](https://github.com/pantojs/panto-transformer-filter), [ignore](https://github.com/pantojs/panto-transformer-ignore), [integrity](https://github.com/pantojs/panto-transformer-integrity), [less](https://github.com/pantojs/panto-transformer-less), [uglify](https://github.com/pantojs/panto-transformer-uglify), [stamp](https://github.com/pantojs/panto-transformer-stamp), [aspect](https://github.com/pantojs/panto-transformer-aspect), [browserify](https://github.com/pantojs/panto-transformer-browserify), [replace](https://github.com/pantojs/panto-transformer-replace).
 
-Create your own _transformer_, just extend [panto-transformer](https://github.com/pantojs/panto-transformer), make sure _\_transform_ function returns a [Promise](https://promisesaplus.com/) object.
+Create your own _transformer_, just extend [panto-transformer](https://github.com/pantojs/panto-transformer), make sure _\_transform_ or _transformAll_ function returns a [Promise](https://promisesaplus.com/), override _isTorrential_ if necessary.
 
 ```js
 panto.loadTransformer('foo') // panto-transformer-foo
