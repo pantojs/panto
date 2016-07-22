@@ -40,7 +40,8 @@ panto.pick('**/*.less').tag('less').read().less().write();
 // Others
 panto.rest().tag('others').ignore().copy();
 
-panto.on('error', () => {})// any tasks error, for build & watch
+panto.on('start', () => {})// tasks start, for build & watch
+    .on('error', err => {})// any tasks error, for build & watch
     .on('complete', files => {})// tasks runnning complete, for build & watch
 
 panto.build().then(() => {

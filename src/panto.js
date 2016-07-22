@@ -13,6 +13,7 @@
  * 2016-07-19[10:35:28]:new stream
  * 2016-07-20[22:53:59]:support "src" option
  * 2016-07-21[21:30:45]:throw error if src and output matches
+ * 2016-07-22[23:18:53]:emit start event
  *
  * @author yanni4night@gmail.com
  * @version 0.0.26
@@ -356,6 +357,8 @@ class Panto extends EventEmitter {
             const startTime = process.hrtime();
             let startStreamIdx = 0;
             
+            this.emit('start');
+
             const _walkStream = () => {
                 if (startStreamIdx === this._streams.length) {
                     const diff = process.hrtime(startTime);

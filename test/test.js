@@ -79,7 +79,7 @@ describe('panto', () => {
     });
 
     describe('#build', function () {
-        this.timeout(2e3);
+        this.timeout(5e3);
         it('should get all the files', done => {
             const panto = new Panto();
 
@@ -101,7 +101,7 @@ describe('panto', () => {
                     'match "stylesheets/b.css"');
             }).then(() => done());
         });
-        it('should support equative src&output', done => {
+        it('should support equative src & output', done => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -147,6 +147,35 @@ describe('panto', () => {
             assert.throws(() => {
                 panto.build();
             }, 'throws error');
+        });
+        it('should emit start event', done => {
+            const panto = new Panto();
+            panto.on('start', () => done());
+            panto.build();
+        });
+        it('should emit complete event', done => {
+            const panto = new Panto();
+            panto.on('complete', () => done());
+            panto.build();
+        });
+        it('should emit error event', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+
+            class ErrorTransformer extends Transformer {
+                _transform() {
+                    return Promise.reject(new Error('normal error'));
+                }
+            }
+
+            panto.pick('**/*.js').tag('js').pipe(new ErrorTransformer());
+
+            panto.on('error', () => done());
+            
+            panto.build();
         });
     });
 
