@@ -35,7 +35,7 @@
     "glob": "^7.0.5",
     "lodash": "^4.13.1",
     "minimatch": "^3.0.2",
-    "panto-dependency-map": "^0.1.0",
+    "panto-dependency-map": "^0.2.1",
     "panto-file-utils": "^0.2.0",
     "panto-logger": "^0.2.1",
     "panto-options": "^0.1.0",
