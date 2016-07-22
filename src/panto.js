@@ -449,7 +449,8 @@ class Panto extends EventEmitter {
 
             if (!matched) {
                 restStreamIdxes.forEach(restStreamIdx => {
-                    this._streams[restStreamIdx].files.update(filesShouldBeTransformedAgain[i], true);
+                    this._streams[restStreamIdx].stream.clearCache(filesShouldBeTransformedAgain[i].filename);
+                    this._streams[restStreamIdx].files.update(filesShouldBeTransformedAgain[i]);
                 });
             }
         }

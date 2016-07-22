@@ -208,14 +208,16 @@ describe('panto', () => {
     });
     describe('#onFileDiff', function () {
         this.timeout(5e3);
-        it('', done => {
+        it('add and remove', done => {
             const panto = new Panto();
 
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
+
             panto.pick('**/*.js').tag('js');
             panto.rest().tag('rest');
+
             panto.build().then(() => {
                 return panto.onFileDiff({
                     filename: 'javascripts/c.js',
@@ -239,6 +241,13 @@ describe('panto', () => {
             }).then(files => {
                 assert.ok(files.some(file => file.filename === 'rest.txt'),
                     '"rest.txt" added');
+                return panto.onFileDiff({
+                    filename: 'rest.txt',
+                    cmd: 'remove'
+                });
+            }).then(files => {
+                assert.ok(!files.some(file => file.filename === 'rest.txt'),
+                    '"rest.txt" remove');
             }).then(() => done()).catch(e => console.error(e));
 
         });
