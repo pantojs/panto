@@ -307,7 +307,10 @@ class Panto extends EventEmitter {
             watchOptions.ignored = [`${rel}/**/*`, /^\./];
         }
 
-        this.log.info(`Watching "${path.relative(process.cwd(), watchDir)}" for change...`);
+        this.log.info('\n' + table([
+            ['Watching for changes'],
+            [cwd]
+        ]));
 
         const watcher = chokidar.watch(`**/*`, watchOptions);
         
