@@ -38,7 +38,7 @@
     "panto-file-utils": "^0.2.1",
     "panto-logger": "^0.2.1",
     "panto-options": "^0.1.0",
-    "panto-stream": "^0.6.2",
+    "panto-stream": "^0.6.3",
     "subdir": "0.0.3",
     "table": "^3.7.8"
   },
