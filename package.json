@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/pantojs/panto#readme",
   "dependencies": {
+    "callback2promise": "^1.0.2",
     "chokidar": "^1.5.2",
     "define-frozen-property": "^0.1.0",
     "glob": "^7.0.5",

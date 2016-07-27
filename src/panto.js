@@ -28,6 +28,7 @@ const chokidar = require('chokidar');
 const subdir = require('subdir');
 const glob = require('glob');
 const lodash = require('lodash');
+const c2p = require('callback2promise');
 const table = require('table').default;
 
 const defineFrozenProperty = require('define-frozen-property');
@@ -101,15 +102,7 @@ class Panto extends EventEmitter {
             globOptions.ignore = `${rel}/**/*`;
         }
 
-        return new Promise((resolve, reject) => {
-            glob('**/*', globOptions, (err, filenames) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(filenames);
-                }
-            });
-        });
+        return c2p(glob)('**/*', globOptions);
     }
     /**
      * Report a dependency.
@@ -160,7 +153,9 @@ class Panto extends EventEmitter {
         if (!pattern || !isString(pattern)) {
             throw new Error(`A string pattern is required to pick up some files`);
         }
+        
         const stream = new Stream();
+        
         this._streams.push({
             stream,
             pattern,
@@ -184,6 +179,7 @@ class Panto extends EventEmitter {
      */
     rest() {
         const stream = new Stream();
+        
         this._streams.push({
             stream,
             pattern: null,
