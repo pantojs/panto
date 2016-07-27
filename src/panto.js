@@ -150,8 +150,8 @@ class Panto extends EventEmitter {
      * @return {Stream}
      */
     pick(pattern) {
-        if (!pattern || !isString(pattern)) {
-            throw new Error(`A string pattern is required to pick up some files`);
+        if (!isString(pattern) && !Array.isArray(pattern)) {
+            throw new Error(`Pick files with string or array pattern`);
         }
         
         const stream = new Stream();
@@ -442,7 +442,7 @@ class Panto extends EventEmitter {
                 let {stream, pattern, files} = this._streams[j];
                 if(null === pattern){
                     restStreamIdxes.push(j);
-                } else if (this.file.match(filesShouldBeTransformedAgain[i].filename, pattern)) {
+                } else if (this.file.match(filesShouldBeTransformedAgain[i].filename, pattern).length) {
                     files.update(filesShouldBeTransformedAgain[i]);
                     stream.clearCache(filesShouldBeTransformedAgain[i].filename);
                     matched = true;

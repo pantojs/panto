@@ -87,8 +87,8 @@ describe('panto', () => {
                 cwd: __dirname + '/fixtures/'
             });
 
-            panto.pick('**/*.js').tag('js');
-            panto.pick('**/*.css').tag('css');
+            panto.pick(['**/*.js']).tag('js');
+            panto.pick(['**/*.css']).tag('css');
 
             panto.build().then(files => {
                 assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
