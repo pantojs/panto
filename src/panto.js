@@ -16,7 +16,7 @@
  * 2016-07-22[23:18:53]:emit start event
  *
  * @author yanni4night@gmail.com
- * @version 0.0.26
+ * @version 0.0.29
  * @since 0.0.1
  */
 'use strict';
@@ -82,23 +82,34 @@ class Panto extends EventEmitter {
         return this.options.get(...args);
     }
     /**
+     * Get a copy of all the options.
+     * 
+     * @return {object}
+     */
+    getOptions() {
+        return this.options.get();
+    }
+    /**
      * Search all the files in "cwd" option.
      * 
      * @return {Promise}
      */
     getFiles() {
-        const src = this.getOption('src');
-        const cwd = this.getOption('cwd');
-        const output = this.getOption('output');
+        const src = this.file.locate('.');
+        const output = this.file.touch('.');
 
         const globOptions = {
-            cwd: path.join(cwd, src),
+            cwd: src,
             nodir: true
         };
 
+        if (src === output) {
+            throw new Error(`src and output should be different`);
+        }
+
         // Ignore output
         if (subdir(src, output)) {
-            let rel = path.relative(src, output);
+            const rel = path.relative(src, output);
             globOptions.ignore = `${rel}/**/*`;
         }
 
@@ -241,17 +252,7 @@ class Panto extends EventEmitter {
      */
     build() {
         // remove output directory first
-        this.file.rimraf('.', {
-            force: true
-        });
-
-        const src = this.getOption('src');
-        const cwd = this.getOption('cwd');
-        const output = this.getOption('output');
-
-        if (path.join(cwd, src) === path.join(cwd, output)) {
-            throw new Error(`src and output should be different`);
-        }
+        this.file.rimraf('.');
 
         this._streams.forEach(({
             stream
@@ -281,31 +282,24 @@ class Panto extends EventEmitter {
      * @return {Panto} this
      */
     watch() {
-        const cwd = this.getOption('cwd');
-        const src = this.getOption('src');
-        const output = this.getOption('output');
-
-        if (path.join(cwd, src) === path.join(cwd, output)) {
-            throw new Error(`src and output should be different`);
-        }
-
-        const watchDir = path.join(cwd, src);
+        const src = this.file.locate('.');
+        const output = this.file.touch('.');
         
         const watchOptions = {
             persistent: true,
             ignoreInitial: true,
-            cwd: watchDir
+            cwd: src
         };
 
         // Ignore output
         if(subdir(src, output)) {
-            let rel = path.relative(src, output);
+            const rel = path.relative(src, output);
             watchOptions.ignored = [`${rel}/**/*`, /^\./];
         }
 
         this.log.info('\n' + table([
             ['Watching for changes'],
-            [cwd]
+            [src]
         ]));
 
         const watcher = chokidar.watch(`**/*`, watchOptions);

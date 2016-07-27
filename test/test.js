@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.24
+ * @version 0.0.29
  * @since 0.0.1
  */
 'use strict';
@@ -75,6 +75,17 @@ describe('panto', () => {
                     'found "javascripts/b.js"');
                 done();
             });
+        });
+        it('should throw if src and output are same', () => {
+            const panto = new Panto();
+            panto.setOptions({
+                cwd: '.',
+                src: 'foo',
+                output: './foo'
+            });
+            assert.throws(() => {
+                panto.getFiles();
+            }, 'throws error');
         });
     });
 
@@ -174,7 +185,7 @@ describe('panto', () => {
             panto.pick('**/*.js').tag('js').pipe(new ErrorTransformer());
 
             panto.on('error', () => done());
-            
+
             panto.build();
         });
     });
@@ -279,19 +290,6 @@ describe('panto', () => {
                     '"rest.txt" remove');
             }).then(() => done()).catch(e => console.error(e));
 
-        });
-    });
-    describe('#watch', () => {
-        it('should throw if src and output are same', () => {
-            const panto = new Panto();
-            panto.setOptions({
-                cwd: '.',
-                src: 'foo',
-                output: './foo'
-            });
-            assert.throws(() => {
-                panto.watch();
-            }, 'throws error');
         });
     });
 
