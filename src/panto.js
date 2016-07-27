@@ -33,7 +33,7 @@ const table = require('table').default;
 
 const defineFrozenProperty = require('define-frozen-property');
 const logger = require('panto-logger');
-const Stream = require('panto-stream');
+const PantoStream = require('panto-stream');
 const Options = require('panto-options');
 const FileUtils = require('panto-file-utils');
 const DependencyMap = require('panto-dependency-map');
@@ -158,14 +158,14 @@ class Panto extends EventEmitter {
      * Pick some files matched the pattern.
      * 
      * @param  {string} pattern
-     * @return {Stream}
+     * @return {PantoStream}
      */
     pick(pattern) {
         if (!isString(pattern) && !Array.isArray(pattern)) {
             throw new Error(`Pick files with string or array pattern`);
         }
         
-        const stream = new Stream();
+        const stream = new PantoStream();
         
         this._streams.push({
             stream,
@@ -178,7 +178,7 @@ class Panto extends EventEmitter {
      * Alias for pick.
      * 
      * @param  {...string}
-     * @return {Stream}
+     * @return {PantoStream}
      */
     $(...args) {
         return this.pick(...args);
@@ -186,10 +186,10 @@ class Panto extends EventEmitter {
     /**
      * Get the files not picked.
      * 
-     * @return {Stream}
+     * @return {PantoStream}
      */
     rest() {
-        const stream = new Stream();
+        const stream = new PantoStream();
         
         this._streams.push({
             stream,
@@ -229,12 +229,12 @@ class Panto extends EventEmitter {
     loadTransformer(name, transformer) {
         if (!transformer) {
             let T = require(`panto-transformer-${name.toLowerCase()}`);
-            Stream.prototype[camelCase(name)] = function(opts) {
-                return this.connect(new Stream(new T(opts)));
+            PantoStream.prototype[camelCase(name)] = function(opts) {
+                return this.connect(new PantoStream(new T(opts)));
             };
         } else {
-            Stream.prototype[camelCase(name)] = function(opts) {
-                return this.connect(new Stream(new transformer(opts)));
+            PantoStream.prototype[camelCase(name)] = function(opts) {
+                return this.connect(new PantoStream(new transformer(opts)));
             };
         }
         return this;

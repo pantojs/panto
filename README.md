@@ -1,7 +1,7 @@
 # PantoJS<sup>®</sup>
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url] [![Stories in Ready][waffle-image]][waffle-url]
 
-_**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extreme flexible*** file-transforming task runner built for web front-ended projects, but is suitable for any kinds of building tasks. See <http://pantojs.xyz/> for more details.
+_**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine for file-transforming. See <http://pantojs.xyz/> for more details.
 
 ```js
 /*
@@ -27,6 +27,10 @@ panto.setOptions({
     output: 'output' // Cannot be same to src
 });
 
+/*
+ * You need to load transformers first. 
+ */
+
 // Isomorphic JavaScript
 const srcJs = panto.pick('**/*.{js,jsx}').tag('js(x)').read();
 
@@ -49,7 +53,7 @@ panto.build().then(() => {
 });
 ```
 
-Some official transformers: [read](https://github.com/pantojs/panto-transformer-read), [write](https://github.com/pantojs/panto-transformer-write), [babel](https://github.com/pantojs/panto-transformer-babel), [filter](https://github.com/pantojs/panto-transformer-filter), [ignore](https://github.com/pantojs/panto-transformer-ignore), [integrity](https://github.com/pantojs/panto-transformer-integrity), [less](https://github.com/pantojs/panto-transformer-less), [uglify](https://github.com/pantojs/panto-transformer-uglify), [stamp](https://github.com/pantojs/panto-transformer-stamp), [aspect](https://github.com/pantojs/panto-transformer-aspect), [browserify](https://github.com/pantojs/panto-transformer-browserify), [replace](https://github.com/pantojs/panto-transformer-replace).
+Some official transformers: [read](https://github.com/pantojs/panto-transformer-read), [write](https://github.com/pantojs/panto-transformer-write), [babel](https://github.com/pantojs/panto-transformer-babel), [filter](https://github.com/pantojs/panto-transformer-filter), [ignore](https://github.com/pantojs/panto-transformer-ignore), [integrity](https://github.com/pantojs/panto-transformer-integrity), [less](https://github.com/pantojs/panto-transformer-less), [uglify](https://github.com/pantojs/panto-transformer-uglify), [stamp](https://github.com/pantojs/panto-transformer-stamp), [aspect](https://github.com/pantojs/panto-transformer-aspect), [browserify](https://github.com/pantojs/panto-transformer-browserify), [replace](https://github.com/pantojs/panto-transformer-replace), [copy](https://github.com/pantojs/panto-transformer-copy).
 
 Create your own _transformer_, just extend [panto-transformer](https://github.com/pantojs/panto-transformer), make sure _\_transform_ or _transformAll_ function returns a [Promise](https://promisesaplus.com/), override _isTorrential_ if necessary.
 
