@@ -392,6 +392,9 @@ describe('panto', () => {
                 isTorrential() {
                     return false;
                 }
+                isCacheable() {
+                    return true;
+                }
             }
 
             panto.pick('**/*.css').tag('css');

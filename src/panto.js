@@ -15,9 +15,10 @@
  * 2016-07-21[21:30:45]:throw error if src and output matches
  * 2016-07-22[23:18:53]:emit start event
  * 2016-07-30[14:24:55]:optimize
+ * 2016-07-31[00:43:20]:remove useless log
  *
  * @author yanni4night@gmail.com
- * @version 0.0.29
+ * @version 0.0.30
  * @since 0.0.1
  */
 'use strict';
@@ -298,11 +299,6 @@ class Panto extends EventEmitter {
             watchOptions.ignored = [`${rel}/**/*`, /^\./];
         }
 
-        this.log.info('\n' + table([
-            ['Watching for changes'],
-            [src]
-        ]));
-
         const watcher = chokidar.watch(`**/*`, watchOptions);
         
         watcher.on('add', path => {
@@ -337,12 +333,11 @@ class Panto extends EventEmitter {
         const tableData = [];
 
         this._streams.forEach(({stream}, i) => {
-            tableData[i] = [stream.tag, 'ready', '-'];
+            tableData[i] = [stream.tag, '-'];
         });
 
         const print = () => {
-            const data = table(tableData);
-            this.log.info('\n' + data);
+            process.stdout.write(table(tableData));
         };
 
         return new Promise((resolve, reject) => {
@@ -357,7 +352,7 @@ class Panto extends EventEmitter {
                 if (startStreamIdx === this._streams.length) {
                     const diff = process.hrtime(startTime);
                     const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
-                    tableData.push(['Total', `complete`, `${totalMs}ms`]);
+                    tableData.push(['Total', `${totalMs}ms`]);
                     print();
 
                     resolve(flattenDeep(ret));
@@ -366,8 +361,6 @@ class Panto extends EventEmitter {
                     let streamStartTime = process.hrtime();
                     const idx = startStreamIdx;
                     tableData[idx][1] = 'running';
-
-                    this.log.info(`Processing ${stream.tag}...[${1 + startStreamIdx}/${this._streams.length}]`);
                     
                     stream.flow(files.values())
                         .then(
@@ -375,8 +368,7 @@ class Panto extends EventEmitter {
                                 let streamDiff = process.hrtime(streamStartTime);
                                 const streamMs = parseInt(streamDiff[0] * 1e3 + streamDiff[1] / 1e6, 10);
 
-                                tableData[idx][1] = `complete`;
-                                tableData[idx][2] = `${streamMs}ms`;
+                                tableData[idx][1] = `${streamMs}ms`;
 
                                 ret.push(data);
                                 _walkStream();
