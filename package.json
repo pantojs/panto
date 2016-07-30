@@ -4,7 +4,7 @@
   "description": "PantoJS®️ is an extreme flexible file-transforming task runner",
   "main": "index.js",
   "scripts": {
-    "test": "eslint src test && PANTO_LOG_LEVEL=error ./node_modules/.bin/mocha",
+    "test": "eslint src test && PANTO_LOG_LEVEL=data ./node_modules/.bin/mocha",
     "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
   "precommit": "test",
@@ -37,9 +37,9 @@
     "lodash": "^4.13.1",
     "panto-dependency-map": "^0.2.1",
     "panto-file-utils": "^0.3.0",
-    "panto-logger": "^0.2.1",
+    "panto-logger": "^0.2.2",
     "panto-options": "^0.1.1",
-    "panto-stream": "^0.6.3",
+    "panto-stream": "^0.7.5",
     "subdir": "0.0.3",
     "table": "^3.7.8"
   },

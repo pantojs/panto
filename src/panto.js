@@ -14,6 +14,7 @@
  * 2016-07-20[22:53:59]:support "src" option
  * 2016-07-21[21:30:45]:throw error if src and output matches
  * 2016-07-22[23:18:53]:emit start event
+ * 2016-07-30[14:24:55]:optimize
  *
  * @author yanni4night@gmail.com
  * @version 0.0.29
@@ -433,20 +434,18 @@ class Panto extends EventEmitter {
             }
 
             for (let j = 0; j < this._streams.length; ++j) {
-                let {stream, pattern, files} = this._streams[j];
+                let {pattern, files} = this._streams[j];
                 if(null === pattern){
                     restStreamIdxes.push(j);
                 } else if (this.file.match(filesShouldBeTransformedAgain[i].filename, pattern).length) {
-                    files.update(filesShouldBeTransformedAgain[i]);
-                    stream.clearCache(filesShouldBeTransformedAgain[i].filename);
+                    files.fix(filesShouldBeTransformedAgain[i]);
                     matched = true;
                 }
             }
 
             if (!matched) {
                 restStreamIdxes.forEach(restStreamIdx => {
-                    this._streams[restStreamIdx].stream.clearCache(filesShouldBeTransformedAgain[i].filename);
-                    this._streams[restStreamIdx].files.update(filesShouldBeTransformedAgain[i]);
+                    this._streams[restStreamIdx].files.fix(filesShouldBeTransformedAgain[i]);
                 });
             }
         }

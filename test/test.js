@@ -188,6 +188,46 @@ describe('panto', () => {
 
             panto.build();
         });
+        it('should operate only once when multiple reading on a file', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+
+            let readInvoked = 0;
+
+            class ReadTransformer extends Transformer {
+                _transform(file) {
+                    const {
+                        filename,
+                        content
+                    } = file;
+                    // use cache if possible
+                    if (!panto._.isNil(content)) {
+                        return Promise.resolve(file);
+                    } else {
+                        readInvoked += 1;
+                        panto.log.debug(file);
+                        return panto.file.read(filename).then(content => {
+                            file.content = content;
+                            return file;
+                        });
+                    }
+                }
+                isCacheable() {
+                    return false;
+                }
+            }
+
+            panto.loadTransformer('read', ReadTransformer);
+
+            panto.$('**/a.js').read();
+            panto.$('**/a.js').read();
+            panto.build().then(() => {
+                assert.deepEqual(readInvoked, 1, 'reading a.js only once');
+            }).then(() => done());
+        });
     });
 
     describe('#clear', function () {
@@ -301,7 +341,48 @@ describe('panto', () => {
                 cwd: __dirname + '/fixtures/'
             });
 
+            let readInvoked = 0;
+
+            class ReadTransformer extends Transformer {
+                _transform(file) {
+                    const {
+                        filename,
+                        content
+                    } = file;
+                    // use cache if possible
+                    if (!panto._.isNil(content)) {
+                        return Promise.resolve(file);
+                    } else {
+                        readInvoked += 1;
+                        panto.log.debug(file);
+                        return panto.file.read(filename).then(content => {
+                            file.content = content;
+                            return file;
+                        });
+                    }
+                }
+                isCacheable() {
+                    return false;
+                }
+            }
+
+            panto.loadTransformer('read', ReadTransformer);
+
             let jsInvoked = 0;
+
+            class ModifyTransformer extends Transformer {
+                _transform(file) {
+                    if (file.filename !== 'javascripts/a.js') {
+                        return super._transform(file);
+                    }
+                    return Promise.resolve(panto._.extend(file, {
+                        content: Date.now()
+                    }));
+                }
+                isCacheable() {
+                    return false;
+                }
+            }
 
             class JsTransformer extends Transformer {
                 _transform(file) {
@@ -314,7 +395,8 @@ describe('panto', () => {
             }
 
             panto.pick('**/*.css').tag('css');
-            panto.pick('**/*.js').tag('js').connect(new Stream(new JsTransformer()));
+            panto.pick('**/*.js').tag('js').read().connect(new Stream(new ModifyTransformer()))
+                .connect(new Stream(new JsTransformer()));
 
             panto.build().then(() => {
                 panto.reportDependencies('javascripts/a.js', 'stylesheets/a.css');
@@ -323,6 +405,7 @@ describe('panto', () => {
                     cmd: 'change'
                 });
             }).then(() => {
+                assert.deepEqual(readInvoked, 3, 'read three times');
                 assert.deepEqual(jsInvoked, 3);
             }).then(() => done()).catch(e => console.error(e));
         });

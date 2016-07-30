@@ -78,24 +78,26 @@ class FileCollection {
      * @param  {object} diff Diff object like {cmd:'change',filename:'a.js'}
      * @return {FileCollection} this
      */
-    update(diff) {
-        switch (diff.cmd) {
+    update(cmd, file) {
+        switch (cmd) {
         case 'add':
-            this.add({
-                filename: diff.filename,
-                content: diff.content
-            });
+            this.add(file);
             break;
         case 'change':
-            this.refresh(diff.filename);
+            this.refresh(file.filename);
             break;
         case 'remove':
-            this.remove(diff.filename);
+            this.remove(file.filename);
             break;
         default:
-            throw new Error(`"${diff.cmd}" is not supported when update a file collection`);
+            throw new Error(`"${cmd}" is not supported when update a file collection`);
         }
         return this;
+    }
+    fix(diff) {
+        const file = diff;
+        const cmd = file.cmd;
+        return this.update(cmd, file);
     }
 }
 
