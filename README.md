@@ -72,7 +72,7 @@ panto.$('*.js').foo(...).bar(...)
 [travis-image]: http://img.shields.io/travis/pantojs/panto.svg
 [david-dm-url]:https://david-dm.org/pantojs/panto
 [david-dm-image]:https://david-dm.org/pantojs/panto.svg
-[david-dm-dev-url]:https://david-dm.org/pantojs/panto#info=devDependencies
+[david-dm-dev-url]:https://david-dm.org/pantojs/panto?type=dev
 [david-dm-dev-image]:https://david-dm.org/pantojs/panto/dev-status.svg
 [coveralls-image]:https://coveralls.io/repos/github/pantojs/panto/badge.svg?branch=master
 [coveralls-url]:https://coveralls.io/github/pantojs/panto?branch=master
