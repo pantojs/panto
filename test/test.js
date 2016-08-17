@@ -16,7 +16,6 @@ const panto = require('../');
 const fs = require('fs');
 const assert = require('assert');
 const Transformer = require('panto-transformer');
-const Stream = require('panto-stream');
 const isFunction = require('lodash/isFunction');
 
 /*global describe,it*/
@@ -24,6 +23,7 @@ const isFunction = require('lodash/isFunction');
 describe('panto', () => {
     describe('#constructor', () => {
         it('should define frozen "options"', () => {
+            assert.ok('Stream' in panto, '"Stream" in panto');
             assert.ok('options' in panto, '"options" in panto');
             assert.ok(!!panto.options.get('output'), '"output" in panto.options');
             assert.deepEqual(panto.options.get('cwd'), process.cwd(), '"cwd" in panto.options');
@@ -268,6 +268,7 @@ describe('panto', () => {
             }
 
             const panto = new Panto();
+            const Stream = panto.Stream;
 
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
@@ -336,6 +337,7 @@ describe('panto', () => {
     describe('#reportDependencies', function () {
         it('should transform dependencies too', done => {
             const panto = new Panto();
+            const Stream = panto.Stream;
 
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
@@ -415,6 +417,8 @@ describe('panto', () => {
     });
     describe('#loadTransformer', () => {
         it('should load the Transformer', () => {
+            const panto = new Panto();
+            const Stream = panto.Stream;
             class Foo {}
             panto.loadTransformer('foo', Foo);
             assert.ok(isFunction(new Stream().foo), '"new Stream().foo" is function');

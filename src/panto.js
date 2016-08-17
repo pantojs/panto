@@ -56,6 +56,7 @@ class Panto extends EventEmitter {
             binary_resource: ''
         });
         
+        defineFrozenProperty(this, 'Stream', PantoStream, true);
         defineFrozenProperty(this, 'options', options, true);
         defineFrozenProperty(this, 'file', new FileUtils(options), true);
         defineFrozenProperty(this, 'log', logger, true);
