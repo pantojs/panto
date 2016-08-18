@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.29
+ * @version 0.0.31
  * @since 0.0.1
  */
 'use strict';
@@ -167,6 +167,18 @@ describe('panto', () => {
         it('should emit complete event', done => {
             const panto = new Panto();
             panto.on('complete', () => done());
+            panto.build();
+        });
+        it('should emit flowstart event', done => {
+            const panto = new Panto();
+            panto.$('*.js');
+            panto.on('flowstart', () => done());
+            panto.build();
+        });
+        it('should emit flowend event', done => {
+            const panto = new Panto();
+            panto.$('*.js');
+            panto.on('flowend', () => done());
             panto.build();
         });
         it('should emit error event', done => {

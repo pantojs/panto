@@ -16,9 +16,10 @@
  * 2016-07-22[23:18:53]:emit start event
  * 2016-07-30[14:24:55]:optimize
  * 2016-07-31[00:43:20]:remove useless log
+ * 2016-08-18[13:28:07]:remove log
  *
  * @author yanni4night@gmail.com
- * @version 0.0.30
+ * @version 0.0.31
  * @since 0.0.1
  */
 'use strict';
@@ -31,7 +32,6 @@ const subdir = require('subdir');
 const glob = require('glob');
 const lodash = require('lodash');
 const c2p = require('callback2promise');
-const table = require('table').default;
 
 const defineFrozenProperty = require('define-frozen-property');
 const logger = require('panto-logger');
@@ -328,49 +328,29 @@ class Panto extends EventEmitter {
     /**
      * Walk all the streams and flow.
      * 
-     * @return {[type]} [description]
+     * @return {Promise}
      */
     walkStream() {
-        const tableData = [];
-
-        this._streams.forEach(({stream}, i) => {
-            tableData[i] = [stream.tag, '-'];
-        });
-
-        const print = () => {
-            process.stdout.write(table(tableData));
-        };
 
         return new Promise((resolve, reject) => {
 
             const ret = [];
-            const startTime = process.hrtime();
+
             let startStreamIdx = 0;
             
             this.emit('start');
 
             const _walkStream = () => {
                 if (startStreamIdx === this._streams.length) {
-                    const diff = process.hrtime(startTime);
-                    const totalMs = parseInt(diff[0] * 1e3 + diff[1] / 1e6, 10);
-                    tableData.push(['Total', `${totalMs}ms`]);
-                    print();
-
                     resolve(flattenDeep(ret));
                 } else {
                     const {stream, files} = this._streams[startStreamIdx];
-                    let streamStartTime = process.hrtime();
-                    const idx = startStreamIdx;
-                    tableData[idx][1] = 'running';
                     
+                    this.emit('flowstart', {tag: stream.tag});
                     stream.flow(files.values())
                         .then(
                             data => {
-                                let streamDiff = process.hrtime(streamStartTime);
-                                const streamMs = parseInt(streamDiff[0] * 1e3 + streamDiff[1] / 1e6, 10);
-
-                                tableData[idx][1] = `${streamMs}ms`;
-
+                                this.emit('flowend', {tag: stream.tag});
                                 ret.push(data);
                                 _walkStream();
                             }).catch(reject);
