@@ -62,7 +62,7 @@ class Panto extends EventEmitter {
         defineFrozenProperty(this, 'log', logger, true);
         defineFrozenProperty(this, 'util', lodash, true);
         defineFrozenProperty(this, '_', lodash, true);
-        defineFrozenProperty(this, '_streams', []);
+        defineFrozenProperty(this, '_streamWrappers', []);
         defineFrozenProperty(this, '_dependencies', new DependencyMap());
     }
     /**
@@ -170,7 +170,7 @@ class Panto extends EventEmitter {
         
         const stream = new PantoStream();
         
-        this._streams.push({
+        this._streamWrappers.push({
             stream,
             pattern,
             files: new FileCollection()
@@ -194,7 +194,7 @@ class Panto extends EventEmitter {
     rest() {
         const stream = new PantoStream();
         
-        this._streams.push({
+        this._streamWrappers.push({
             stream,
             pattern: null,
             files: new FileCollection()
@@ -207,7 +207,7 @@ class Panto extends EventEmitter {
      * @return {Panto} this
      */
     clear() {
-        this._streams.splice(0);
+        this._streamWrappers.splice(0);
         this._dependencies.clear();
 
         return this;
@@ -257,7 +257,7 @@ class Panto extends EventEmitter {
         // remove output directory first
         this.file.rimraf('.');
 
-        this._streams.forEach(({
+        this._streamWrappers.forEach(({
             stream
         }) => stream.freeze());
 
@@ -331,31 +331,31 @@ class Panto extends EventEmitter {
      * @return {Promise}
      */
     walkStream() {
-
         return new Promise((resolve, reject) => {
-
             const ret = [];
-
-            let startStreamIdx = 0;
+            let sIdx = 0;
             
             this.emit('start');
 
             const _walkStream = () => {
-                if (startStreamIdx === this._streams.length) {
+                if (sIdx === this._streamWrappers.length) {
                     resolve(flattenDeep(ret));
                 } else {
-                    const {stream, files} = this._streams[startStreamIdx];
+                    const {stream, files} = this._streamWrappers[sIdx];
                     
                     this.emit('flowstart', {tag: stream.tag});
+
                     stream.flow(files.values())
                         .then(
                             data => {
+                                
                                 this.emit('flowend', {tag: stream.tag});
+                                
                                 ret.push(data);
                                 _walkStream();
                             }).catch(reject);
                 }
-                startStreamIdx += 1;
+                sIdx += 1;
             };
             _walkStream();
         }).then(files => {
@@ -406,8 +406,8 @@ class Panto extends EventEmitter {
                 this._dependencies.clear(filesShouldBeTransformedAgain[i].filename);
             }
 
-            for (let j = 0; j < this._streams.length; ++j) {
-                let {pattern, files} = this._streams[j];
+            for (let j = 0; j < this._streamWrappers.length; ++j) {
+                let {pattern, files} = this._streamWrappers[j];
                 if(null === pattern){
                     restStreamIdxes.push(j);
                 } else if (this.file.match(filesShouldBeTransformedAgain[i].filename, pattern).length) {
@@ -418,7 +418,7 @@ class Panto extends EventEmitter {
 
             if (!matched) {
                 restStreamIdxes.forEach(restStreamIdx => {
-                    this._streams[restStreamIdx].files.fix(filesShouldBeTransformedAgain[i]);
+                    this._streamWrappers[restStreamIdx].files.fix(filesShouldBeTransformedAgain[i]);
                 });
             }
         }
