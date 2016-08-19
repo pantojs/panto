@@ -1,7 +1,7 @@
 {
   "name": "panto",
   "version": "0.0.32",
-  "description": "PantoJS®️ is an extreme flexible file-transforming task runner",
+  "description": "PantoJS®️ is an extreme flexible engine transforming files",
   "main": "index.js",
   "scripts": {
     "test": "eslint src test && PANTO_LOG_LEVEL=error ./node_modules/.bin/mocha",
@@ -39,12 +39,12 @@
     "panto-file-utils": "^0.3.0",
     "panto-logger": "^0.2.2",
     "panto-options": "^0.1.1",
-    "panto-stream": "^0.7.6",
+    "panto-stream": "^0.7.7",
     "subdir": "0.0.3"
   },
   "devDependencies": {
     "coveralls": "^2.11.9",
-    "mocha": "^3.0.1",
+    "mocha": "^3.0.2",
     "mocha-lcov-reporter": "^1.2.0",
     "panto-transformer": "^0.2.4",
     "pre-commit": "^1.1.3"

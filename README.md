@@ -1,7 +1,7 @@
 # PantoJS<sup>®</sup>
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url] [![Stories in Ready][waffle-image]][waffle-url]
 
-_**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine for file-transforming. See <http://pantojs.xyz/> for more details.
+_**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine transforming files. See <http://pantojs.xyz/> for more details.
 
 ```js
 /*
