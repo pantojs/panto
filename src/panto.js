@@ -17,9 +17,10 @@
  * 2016-07-30[14:24:55]:optimize
  * 2016-07-31[00:43:20]:remove useless log
  * 2016-08-18[13:28:07]:remove log
+ * 2016-08-19[17:49:18]:dormant stream supported
  *
  * @author yanni4night@gmail.com
- * @version 0.0.31
+ * @version 0.0.32
  * @since 0.0.1
  */
 'use strict';
@@ -158,12 +159,16 @@ class Panto extends EventEmitter {
         return this;
     }
     /**
-     * Pick some files matched the pattern.
+     * Pick some files matched the pattern and return a head stream.
+     * "Head" means that it has no parent. Beyond that,it has no transformer either.
+     *
+     * Dormant streams flow only once.
      * 
      * @param  {string} pattern
+     * @param  {Boolean} isDormant Default is false
      * @return {PantoStream}
      */
-    pick(pattern) {
+    pick(pattern, isDormant = false) {
         if (!isString(pattern) && !Array.isArray(pattern)) {
             throw new Error(`Pick files with string or array pattern`);
         }
@@ -173,6 +178,8 @@ class Panto extends EventEmitter {
         this._streamWrappers.push({
             stream,
             pattern,
+            isDormant,
+            flowsCount: 0,
             files: new FileCollection()
         });
         return stream;
@@ -255,17 +262,17 @@ class Panto extends EventEmitter {
      */
     build() {
         // remove output directory first
-        this.file.rimraf('.');
+        return this.file.rimraf('.').then(() => {
+            this._streamWrappers.forEach(({
+                stream
+            }) => stream.freeze());
 
-        this._streamWrappers.forEach(({
-            stream
-        }) => stream.freeze());
-
-        return this.getFiles().then(filenames => {
-            return this.onFileDiff(...filenames.map(filename => ({
-                filename,
-                cmd: 'add'
-            })));
+            return this.getFiles().then(filenames => {
+                return this.onFileDiff(...filenames.map(filename => ({
+                    filename,
+                    cmd: 'add'
+                })));
+            });
         });
     }
     /**
@@ -333,30 +340,46 @@ class Panto extends EventEmitter {
     walkStream() {
         return new Promise((resolve, reject) => {
             const ret = [];
-            let sIdx = 0;
+            let sIdx = -1;
             
             this.emit('start');
 
             const _walkStream = () => {
+                sIdx += 1;
                 if (sIdx === this._streamWrappers.length) {
                     resolve(flattenDeep(ret));
                 } else {
-                    const {stream, files} = this._streamWrappers[sIdx];
-                    
-                    this.emit('flowstart', {tag: stream.tag});
+                    const {
+                        stream,
+                        isDormant,
+                        flowsCount,
+                        files
+                    } = this._streamWrappers[sIdx];
 
-                    stream.flow(files.values())
-                        .then(
-                            data => {
-                                
-                                this.emit('flowend', {tag: stream.tag});
-                                
-                                ret.push(data);
-                                _walkStream();
-                            }).catch(reject);
+                    if (isDormant && flowsCount > 0) {
+                        _walkStream();
+                    } else {
+
+                        this.emit('flowstart', {
+                            tag: stream.tag
+                        });
+
+                        this._streamWrappers[sIdx].flowsCount += 1;
+
+                        stream.flow(files.values())
+                            .then(
+                                data => {
+                                    this.emit('flowend', {
+                                        tag: stream.tag
+                                    });
+
+                                    ret.push(data);
+                                    _walkStream();
+                                }).catch(reject);
+                    }
                 }
-                sIdx += 1;
             };
+
             _walkStream();
         }).then(files => {
             this.emit('complete', files);

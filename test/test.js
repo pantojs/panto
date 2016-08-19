@@ -148,16 +148,16 @@ describe('panto', () => {
                 });
             }).then(() => done()).catch(e => console.error(e));
         });
-        it('should throw if src and output are same', () => {
+        it('should throw if src and output are same', done => {
             const panto = new Panto();
             panto.setOptions({
                 cwd: '.',
                 src: 'foo',
                 output: './foo'
             });
-            assert.throws(() => {
-                panto.build();
-            }, 'throws error');
+            panto.build().catch(() => {
+                done();
+            });
         });
         it('should emit start event', done => {
             const panto = new Panto();
@@ -220,7 +220,6 @@ describe('panto', () => {
                         return Promise.resolve(file);
                     } else {
                         readInvoked += 1;
-                        panto.log.debug(file);
                         return panto.file.read(filename).then(content => {
                             file.content = content;
                             return file;
@@ -239,6 +238,36 @@ describe('panto', () => {
             panto.build().then(() => {
                 assert.deepEqual(readInvoked, 1, 'reading a.js only once');
             }).then(() => done());
+        });
+        it('should skip dormant streams', done => {
+            const panto = new Panto();
+
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+
+            let invoked = 0;
+
+            class TestTransformer extends Transformer {
+                transformAll(files) {
+                    invoked += 1;
+                    return super.transformAll(files);
+                }
+                isTorrential() {
+                    return true;
+                }
+                isCacheable() {
+                    return false;
+                }
+            }
+
+            panto.$('**/a.js');
+            panto.$('**/b.js', true).pipe(new TestTransformer());
+            panto.build().then(() => {
+                return panto.build();
+            }).then(() => {
+                assert.deepEqual(invoked, 1, 'skip dormant streams');
+            }).then(() => done()).catch(e => console.error(e));
         });
     });
 

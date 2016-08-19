@@ -17,6 +17,7 @@ js-----------babel(client)--------|
 less---------less----------------write
 
 others-------ignore--------------copy
+node_modules---------------------copy
 */
 
 const panto = require('panto');
@@ -41,6 +42,9 @@ srcJs.babel(serverBabelOptions).write();
 // Less
 panto.pick('**/*.less').tag('less').read().less().write();
 
+// node_moduels, only once
+panto.pick('node_moduels/**/*', true).tag('node_moduels').copy();
+
 // Others
 panto.rest().tag('others').ignore().copy();
 
@@ -55,7 +59,7 @@ panto.build().then(() => {
 });
 ```
 
-Some official transformers: [read](https://github.com/pantojs/panto-transformer-read), [write](https://github.com/pantojs/panto-transformer-write), [babel](https://github.com/pantojs/panto-transformer-babel), [filter](https://github.com/pantojs/panto-transformer-filter), [ignore](https://github.com/pantojs/panto-transformer-ignore), [integrity](https://github.com/pantojs/panto-transformer-integrity), [less](https://github.com/pantojs/panto-transformer-less), [uglify](https://github.com/pantojs/panto-transformer-uglify), [stamp](https://github.com/pantojs/panto-transformer-stamp), [aspect](https://github.com/pantojs/panto-transformer-aspect), [browserify](https://github.com/pantojs/panto-transformer-browserify), [replace](https://github.com/pantojs/panto-transformer-replace), [copy](https://github.com/pantojs/panto-transformer-copy), [banner](https://github.com/pantojs/panto-transformer-banner).
+Some official transformers: [read](https://github.com/pantojs/panto-transformer-read), [write](https://github.com/pantojs/panto-transformer-write), [babel](https://github.com/pantojs/panto-transformer-babel), [filter](https://github.com/pantojs/panto-transformer-filter), [ignore](https://github.com/pantojs/panto-transformer-ignore), [integrity](https://github.com/pantojs/panto-transformer-integrity), [less](https://github.com/pantojs/panto-transformer-less), [uglify](https://github.com/pantojs/panto-transformer-uglify), [stamp](https://github.com/pantojs/panto-transformer-stamp), [aspect](https://github.com/pantojs/panto-transformer-aspect), [browserify](https://github.com/pantojs/panto-transformer-browserify), [replace](https://github.com/pantojs/panto-transformer-replace), [copy](https://github.com/pantojs/panto-transformer-copy), [resource](https://github.com/pantojs/panto-transformer-resource), [banner](https://github.com/pantojs/panto-transformer-banner).
 
 Create your own _transformer_, just extend [panto-transformer](https://github.com/pantojs/panto-transformer), make sure _\_transform_ or _transformAll_ function returns a [Promise](https://promisesaplus.com/), override _isTorrential_ and _isCacheable_ if necessary.
 
