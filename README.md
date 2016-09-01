@@ -3,23 +3,13 @@
 
 _**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine transforming files. See <http://pantojs.xyz/> for more details.
 
+## Topology
+
+![panto](panto.png)
+
+## Demo
+
 ```js
-/*
-PantoJS can run quite complicated tasks more than you think!
-
- 
-js-----------babel(client)--------|
-   |                              |
-   |                              |
-   |---------babel(server)--------|
-                                  |
-                                  |
-less---------less----------------write
-
-others-------ignore--------------copy
-node_modules---------------------copy
-*/
-
 const panto = require('panto');
 
 panto.setOptions({
@@ -31,6 +21,7 @@ panto.setOptions({
 /*
  * You need to load transformers first. 
  */
+require('load-panto-transformers')(panto);
 
 // Isomorphic JavaScript
 const srcJs = panto.pick('**/*.{js,jsx}').tag('js(x)').read();
@@ -48,18 +39,41 @@ panto.pick('node_moduels/**/*', true).tag('node_moduels').copy();
 // Others
 panto.rest().tag('others').ignore().copy();
 
-panto.on('start', () => {})// tasks start, for build & watch
-    .on('flowstart', ({tag} => {}))// one task starts, for build & watch
-    .on('flowend', ({tag} => {}))// one task ends, for build & watch
-    .on('error', err => {})// any tasks error, for build & watch
-    .on('complete', files => {})// tasks runnning complete, for build & watch
+panto.on('start', buildId => {})// tasks start, for build & watch
+    .on('flowstart', ({tag}, flowId) => {})// one task starts, for build & watch
+    .on('flowend', ({tag}, flowId) => {})// one task ends, for build & watch
+    .on('error', (err, buildId) => {})// any tasks error, for build & watch
+    .on('complete', (files, buildId) => {})// tasks runnning complete, for build & watch
 
 panto.build().then(() => {
     panto.watch();
 });
 ```
 
-Some official transformers: [read](https://github.com/pantojs/panto-transformer-read), [write](https://github.com/pantojs/panto-transformer-write), [babel](https://github.com/pantojs/panto-transformer-babel), [filter](https://github.com/pantojs/panto-transformer-filter), [ignore](https://github.com/pantojs/panto-transformer-ignore), [integrity](https://github.com/pantojs/panto-transformer-integrity), [less](https://github.com/pantojs/panto-transformer-less), [uglify](https://github.com/pantojs/panto-transformer-uglify), [stamp](https://github.com/pantojs/panto-transformer-stamp), [aspect](https://github.com/pantojs/panto-transformer-aspect), [browserify](https://github.com/pantojs/panto-transformer-browserify), [replace](https://github.com/pantojs/panto-transformer-replace), [copy](https://github.com/pantojs/panto-transformer-copy), [resource](https://github.com/pantojs/panto-transformer-resource), [banner](https://github.com/pantojs/panto-transformer-banner).
+
+## Boilerplate
+
+ - [panto-best-practice](https://github.com/pantojs/panto-best-practice)
+
+## Transformers
+
+Some official transformers: 
+
+ - [read](https://github.com/pantojs/panto-transformer-read)
+ - [write](https://github.com/pantojs/panto-transformer-write)
+ - [babel](https://github.com/pantojs/panto-transformer-babel)
+ - [filter](https://github.com/pantojs/panto-transformer-filter)
+ - [ignore](https://github.com/pantojs/panto-transformer-ignore)
+ - [integrity](https://github.com/pantojs/panto-transformer-integrity)
+ - [less](https://github.com/pantojs/panto-transformer-less)
+ - [uglify](https://github.com/pantojs/panto-transformer-uglify)
+ - [stamp](https://github.com/pantojs/panto-transformer-stamp)
+ - [aspect](https://github.com/pantojs/panto-transformer-aspect)
+ - [browserify](https://github.com/pantojs/panto-transformer-browserify)
+ - [replace](https://github.com/pantojs/panto-transformer-replace)
+ - [copy](https://github.com/pantojs/panto-transformer-copy)
+ - [resource](https://github.com/pantojs/panto-transformer-resource)
+ - [banner](https://github.com/pantojs/panto-transformer-banner)
 
 Create your own _transformer_, just extend [panto-transformer](https://github.com/pantojs/panto-transformer), make sure _\_transform_ or _transformAll_ function returns a [Promise](https://promisesaplus.com/), override _isTorrential_ and _isCacheable_ if necessary.
 
