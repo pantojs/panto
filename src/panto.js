@@ -362,9 +362,10 @@ class Panto extends EventEmitter {
                         _walkStream();
                     } else {
                         const FLOW_ID = Date.now();
+
                         this.emit('flowstart', {
                             tag: stream.tag
-                        }, FLOW_ID);
+                        }, FLOW_ID, BUILD_ID);
 
                         this._streamWrappers[sIdx].flowsCount += 1;
 
@@ -373,7 +374,7 @@ class Panto extends EventEmitter {
                                 data => {
                                     this.emit('flowend', {
                                         tag: stream.tag
-                                    }, FLOW_ID);
+                                    }, FLOW_ID, BUILD_ID);
 
                                     ret.push(data);
                                     _walkStream();

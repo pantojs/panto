@@ -181,9 +181,10 @@ describe('panto', () => {
             panto.$('*.js');
             panto.on('flowstart', ({
                 tag
-            }, id) => {
+            }, fid, bid) => {
                 assert.ok(tag);
-                assert.ok(id);
+                assert.ok(fid);
+                assert.ok(bid);
                 done();
             });
             panto.build();
@@ -193,9 +194,10 @@ describe('panto', () => {
             panto.$('*.js');
             panto.on('flowend', ({
                 tag
-            }, id) => {
+            }, fid, bid) => {
                 assert.ok(tag);
-                assert.ok(id);
+                assert.ok(fid);
+                assert.ok(bid);
                 done();
             });
             panto.build();
