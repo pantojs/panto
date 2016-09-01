@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.31
+ * @version 0.0.33
  * @since 0.0.1
  */
 'use strict';
@@ -161,24 +161,43 @@ describe('panto', () => {
         });
         it('should emit start event', done => {
             const panto = new Panto();
-            panto.on('start', () => done());
+            panto.on('start', id => {
+                assert.ok(id);
+                done();
+            });
             panto.build();
         });
         it('should emit complete event', done => {
             const panto = new Panto();
-            panto.on('complete', () => done());
+            panto.on('complete', (files, id) => {
+                assert.ok(files);
+                assert.ok(id);
+                done();
+            });
             panto.build();
         });
         it('should emit flowstart event', done => {
             const panto = new Panto();
             panto.$('*.js');
-            panto.on('flowstart', () => done());
+            panto.on('flowstart', ({
+                tag
+            }, id) => {
+                assert.ok(tag);
+                assert.ok(id);
+                done();
+            });
             panto.build();
         });
         it('should emit flowend event', done => {
             const panto = new Panto();
             panto.$('*.js');
-            panto.on('flowend', () => done());
+            panto.on('flowend', ({
+                tag
+            }, id) => {
+                assert.ok(tag);
+                assert.ok(id);
+                done();
+            });
             panto.build();
         });
         it('should emit error event', done => {
@@ -196,7 +215,11 @@ describe('panto', () => {
 
             panto.pick('**/*.js').tag('js').pipe(new ErrorTransformer());
 
-            panto.on('error', () => done());
+            panto.on('error', (err, id) => {
+                assert.ok(err);
+                assert.ok(id);
+                done();
+            });
 
             panto.build();
         });

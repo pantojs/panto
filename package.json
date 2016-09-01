@@ -1,6 +1,6 @@
 {
   "name": "panto",
-  "version": "0.0.32",
+  "version": "0.0.33",
   "description": "PantoJS®️ is an extreme flexible engine transforming files",
   "main": "index.js",
   "scripts": {

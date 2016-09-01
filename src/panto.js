@@ -18,9 +18,10 @@
  * 2016-07-31[00:43:20]:remove useless log
  * 2016-08-18[13:28:07]:remove log
  * 2016-08-19[17:49:18]:dormant stream supported
+ * 2016-09-01[18:31:20]:add id for building events
  *
  * @author yanni4night@gmail.com
- * @version 0.0.32
+ * @version 0.0.33
  * @since 0.0.1
  */
 'use strict';
@@ -338,11 +339,12 @@ class Panto extends EventEmitter {
      * @return {Promise}
      */
     walkStream() {
+        const BUILD_ID = Date.now();
         return new Promise((resolve, reject) => {
             const ret = [];
             let sIdx = -1;
             
-            this.emit('start');
+            this.emit('start', BUILD_ID);
 
             const _walkStream = () => {
                 sIdx += 1;
@@ -359,10 +361,10 @@ class Panto extends EventEmitter {
                     if (isDormant && flowsCount > 0) {
                         _walkStream();
                     } else {
-
+                        const FLOW_ID = Date.now();
                         this.emit('flowstart', {
                             tag: stream.tag
-                        });
+                        }, FLOW_ID);
 
                         this._streamWrappers[sIdx].flowsCount += 1;
 
@@ -371,7 +373,7 @@ class Panto extends EventEmitter {
                                 data => {
                                     this.emit('flowend', {
                                         tag: stream.tag
-                                    });
+                                    }, FLOW_ID);
 
                                     ret.push(data);
                                     _walkStream();
@@ -382,10 +384,10 @@ class Panto extends EventEmitter {
 
             _walkStream();
         }).then(files => {
-            this.emit('complete', files);
+            this.emit('complete', files, BUILD_ID);
             return files;
         }).catch(err => {
-            this.emit('error', err);
+            this.emit('error', err, BUILD_ID);
             throw err;
         });
     }
