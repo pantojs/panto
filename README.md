@@ -35,8 +35,8 @@ srcJs.babel(serverBabelOptions).write();
 // Less
 panto.pick('**/*.less').tag('less').read().less().write();
 
-// node_moduels, only once
-panto.pick('node_moduels/**/*', true).tag('node_moduels').copy();
+// node_modules, only once
+panto.pick('node_modules/**/*', true).tag('node_modules').copy();
 
 // Others
 panto.rest().tag('others').ignore().copy();
