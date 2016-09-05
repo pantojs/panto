@@ -3,9 +3,11 @@
 
 _**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine transforming files. See <http://pantojs.xyz/> for more details.
 
+It works like [Grunt](http://gruntjs.com) or [Gulp](http://gulpjs.com), but more **efficient**, **powerful** and **flexible**. It can replace [webpack](http://webpack.github.io) easily.
+
 ## Topology
 
-![panto](panto.png)
+![panto topology](panto.png)
 
 ## Demo
 
