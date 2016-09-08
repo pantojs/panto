@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.0.33
+ * @version 0.1.0-alpha.1
  * @since 0.0.1
  */
 'use strict';
@@ -161,6 +161,10 @@ describe('panto', () => {
         });
         it('should emit start event', done => {
             const panto = new Panto();
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+            panto.$('**/*').tag('ALL');
             panto.on('start', id => {
                 assert.ok(id);
                 done();
@@ -169,6 +173,10 @@ describe('panto', () => {
         });
         it('should emit complete event', done => {
             const panto = new Panto();
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+            panto.$('**/*').tag('ALL');
             panto.on('complete', (files, id) => {
                 assert.ok(files);
                 assert.ok(id);
@@ -178,7 +186,10 @@ describe('panto', () => {
         });
         it('should emit flowstart event', done => {
             const panto = new Panto();
-            panto.$('*.js');
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+            panto.$('**/*').tag('ALL');
             panto.on('flowstart', ({
                 tag
             }, fid, bid) => {
@@ -191,7 +202,10 @@ describe('panto', () => {
         });
         it('should emit flowend event', done => {
             const panto = new Panto();
-            panto.$('*.js');
+            panto.setOptions({
+                cwd: __dirname + '/fixtures/'
+            });
+            panto.$('**/*').tag('ALL');
             panto.on('flowend', ({
                 tag
             }, fid, bid) => {
@@ -366,14 +380,14 @@ describe('panto', () => {
             panto.rest().tag('rest');
 
             panto.build().then(() => {
-                return panto.onFileDiff({
+                return panto._onFileDiff({
                     filename: 'javascripts/c.js',
                     cmd: 'add'
                 });
             }).then(files => {
                 assert.ok(files.some(file => file.filename === 'javascripts/c.js'),
                     '"javascripts/c.js" added');
-                return panto.onFileDiff({
+                return panto._onFileDiff({
                     filename: 'javascripts/c.js',
                     cmd: 'remove'
                 });
@@ -381,14 +395,14 @@ describe('panto', () => {
                 assert.ok(!files.some(file => file.filename === 'javascripts/c.js'),
                     '"javascripts/c.js" removed');
             }).then(() => {
-                return panto.onFileDiff({
+                return panto._onFileDiff({
                     filename: 'rest.txt',
                     cmd: 'add'
                 });
             }).then(files => {
                 assert.ok(files.some(file => file.filename === 'rest.txt'),
                     '"rest.txt" added');
-                return panto.onFileDiff({
+                return panto._onFileDiff({
                     filename: 'rest.txt',
                     cmd: 'remove'
                 });
@@ -471,7 +485,7 @@ describe('panto', () => {
 
             panto.build().then(() => {
                 panto.reportDependencies('javascripts/a.js', 'stylesheets/a.css');
-                return panto.onFileDiff({
+                return panto._onFileDiff({
                     filename: 'stylesheets/a.css',
                     cmd: 'change'
                 });

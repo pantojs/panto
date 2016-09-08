@@ -21,7 +21,7 @@
  * 2016-09-01[18:31:20]:add id for building events
  *
  * @author yanni4night@gmail.com
- * @version 0.0.33
+ * @version 0.1.0-alpha.1
  * @since 0.0.1
  */
 'use strict';
@@ -66,6 +66,19 @@ class Panto extends EventEmitter {
         defineFrozenProperty(this, '_', lodash, true);
         defineFrozenProperty(this, '_streamWrappers', []);
         defineFrozenProperty(this, '_dependencies', new DependencyMap());
+        defineFrozenProperty(this, '_fileDiffQueue', []);
+        this.isFlowing = false;
+        this._reflowTimeout = null;
+
+        this.on('start', () => {
+            this.isFlowing = true;
+        });
+        this.on('complete', () => {
+            this.isFlowing = false;
+        });
+        this.on('error', () => {
+            this.isFlowing = false;
+        });
     }
     /**
      * Extend options.
@@ -269,7 +282,7 @@ class Panto extends EventEmitter {
             }) => stream.freeze());
 
             return this.getFiles().then(filenames => {
-                return this.onFileDiff(...filenames.map(filename => ({
+                return this._onFileDiff(...filenames.map(filename => ({
                     filename,
                     cmd: 'add'
                 })));
@@ -299,6 +312,7 @@ class Panto extends EventEmitter {
         const watchOptions = {
             persistent: true,
             ignoreInitial: true,
+            awaitWriteFinish: true,
             cwd: src
         };
 
@@ -312,25 +326,35 @@ class Panto extends EventEmitter {
         
         watcher.on('add', path => {
                 this.log.info(`File ${path} has been added`);
-                this.onFileDiff({
+                this._onFileDiff({
                     filename: path,
                     cmd: 'add'
                 });
             })
             .on('change', path => {
                 this.log.info(`File ${path} has been changed`);
-                this.onFileDiff({
+                this._onFileDiff({
                     filename: path,
                     cmd: 'change'
                 });
             })
             .on('unlink', path => {
                 this.log.info(`File ${path} has been removed`);
-                this.onFileDiff({
+                this._onFileDiff({
                     filename: path,
                     cmd: 'remove'
                 });
             });
+
+        // Loop up what has be changed during the flowing just now
+        this.on('complete', () => {
+            this._dispatchFileChange();
+        });
+
+        this.on('error', () => {
+            this._dispatchFileChange();
+        });
+
         return watcher;
     }
     /**
@@ -402,7 +426,7 @@ class Panto extends EventEmitter {
      * @param  {...object} diffs
      * @return {Promise}
      */
-    onFileDiff(...diffs) {
+    _onFileDiff(...diffs) {
         const changedFileNames = diffs.map(f => f.filename);
         const dependencyFileNames = this._dependencies.resolve(...changedFileNames);
         
@@ -412,7 +436,28 @@ class Panto extends EventEmitter {
             cmd: 'change'
         })));
 
-        let allFileNames = uniq(dependencyFileNames.concat(changedFileNames));
+        this._fileDiffQueue.push(...filesShouldBeTransformedAgain);
+
+        clearTimeout(this._reflowTimeout);
+
+        return new Promise(resolve => {
+            this._reflowTimeout = setTimeout(() => {
+                // Await flowing complete
+                if (!this.isFlowing) {
+                    this._dispatchFileChange().then(resolve);
+                }
+            }, 500);
+        });
+    }
+    _dispatchFileChange() {
+        if (!this._fileDiffQueue.length) {
+            return Promise.resolve([]);
+        }
+
+        const filesShouldBeTransformedAgain = [...this._fileDiffQueue];
+        this._fileDiffQueue.splice(0);
+
+        let allFileNames = uniq(filesShouldBeTransformedAgain.map(f => f.filename));
         let allFileNamesMessage;
         if (allFileNames.length > 10) {
             allFileNamesMessage = allFileNames.slice(0, 10).join('\n') + `\n...and ${allFileNames.length-10} more`;
