@@ -3,9 +3,11 @@
 
 _**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine transforming files. See <http://pantojs.xyz/> for more details.
 
+It works like [Grunt](http://gruntjs.com) or [Gulp](http://gulpjs.com), but more **efficient**, **powerful** and **flexible**. It can replace [webpack](http://webpack.github.io) easily.
+
 ## Topology
 
-![panto](panto.png)
+![panto topology](panto.png)
 
 ## Demo
 
@@ -33,8 +35,8 @@ srcJs.babel(serverBabelOptions).write();
 // Less
 panto.pick('**/*.less').tag('less').read().less().write();
 
-// node_moduels, only once
-panto.pick('node_moduels/**/*', true).tag('node_moduels').copy();
+// node_modules, only once
+panto.pick('node_modules/**/*', true).tag('node_modules').copy();
 
 // Others
 panto.rest().tag('others').ignore().copy();
