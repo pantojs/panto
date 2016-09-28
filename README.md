@@ -1,6 +1,8 @@
 # PantoJS<sup>®</sup>
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url] [![Stories in Ready][waffle-image]][waffle-url]
 
+[中文README](README_CN.md)
+
 _**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine transforming files. See <http://pantojs.xyz/> for more details.
 
 It works like [Grunt](http://gruntjs.com) or [Gulp](http://gulpjs.com), but more **efficient**, **powerful** and **flexible**. It can replace [webpack](http://webpack.github.io) easily.

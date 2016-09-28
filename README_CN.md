@@ -1,9 +1,105 @@
 # PantoJS<sup>®</sup>
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
-_**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ 是一个***极其灵活***的文件转换引擎。通常用于项目的构建和编译，特别是 Web 前端项目。
+_**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ 是一个***极其灵活***的文件转换引擎，通常用于项目的构建和编译，特别是 Web 前端项目。
 
 它比较类似于 [Grunt](http://gruntjs.com) 或 [Gulp](http://gulpjs.com)，但更**高效**、**强大**和**灵活**。
+
+## 快速入门
+
+与 _Grunt_  和 _Gulp_ 一样，_Panto_ 也需要在项目根目录下定义流程配置文件 _pantofile.js_，但不支持 [coffeescript](http://coffeescript.org) 语法。一个最简单的 _pantofile.js_ 内容如下：
+
+```js
+module.exports = panto => {};
+```
+
+> 注意 _Panto_ 对 _Node.js_ 的最低版本要求是 __>=6.0.0__，因此可以放心使用 ES2015 的语法。
+
+接着，就像加载 _Grunt/Gulp_ 的插件一样，需要先加载_转换器（Transformer）_。转换器定义了如何变换文件内容的逻辑。
+
+```js
+module.exports = panto => {
+    panto.loadTransformer('read');
+    panto.loadTransformer('less');
+    panto.loadTransformer('copy');
+    panto.loadTransformer('write');
+};
+```
+
+以上需要使用npm加载相应的package：
+
+```sh
+npm install panto panto-transformer-read panto-transformer-less panto-transformer-copy panto-transformer-write --save-dev
+```
+
+下面先要定义几个参数：`cwd`、`src`、`output`。其实 `src`、`output` 相对于 `cwd`：
+
+```js
+panto.setOptions({
+    cwd: __dirname,
+    src: 'src',
+    output: 'output'
+});
+```
+
+现在开始定义构建流程，这里以转换LESS文件为例：
+
+```js
+panto.pick('*.less').read().less().write();
+```
+
+这个流程的意义是在 `src` 目录内搜索以 _.less_ 为扩展名的文件，并读取其内容，转换为CSS格式，并写入 `output` 的对应目录内。比如 _src/style/foo.less_，转换后写入 _output/style/foo.less_。
+
+现在，我们把除了less文件以外的其它文件拷贝到 `output` 中：
+
+```js
+panto.rest().copy();
+```
+
+那么 _src/config/c.yml_ 拷贝至 _output/config/c.yml_。
+
+现在，完整的构建配置文件的内容是：
+
+```js
+module.exports = panto => {
+    panto.loadTransformer('read');
+    panto.loadTransformer('less');
+    panto.loadTransformer('copy');
+    panto.loadTransformer('write');
+
+    panto.setOptions({
+        cwd: __dirname,
+        src: 'src',
+        output: 'output'
+    });
+
+    panto.pick('*.less').read().less().write();
+    panto.rest().copy();
+};
+```
+
+你可以使用 [load-panto-transformers](http://npmjs.org/load-panto-transformers) 来避免书写大量 _panto.loadTransformer('xxx')_ 语句，同时你也可以使用 [time-panto](http://npmjs.org/time-panto) 来监控构建信息。
+
+## 转换器
+
+__*Transformer*__ 定义了如何转换文件的逻辑，一般为文件内容。继承 [panto-transformer](http://npmjs.org/panto-transformer)：
+
+```js
+const Transformer = require('panto-transformer');
+
+class FooTransformer extends Transformer {
+    _transform(file) {
+        file.content += 'A';
+        return Promise.resolve(file);
+    }
+}
+
+module.exports = FooTransformer;
+```
+
+如果文件的转换是相互独立的，那么实现 _\_transform_ 方法即可，否则需要实现 _transformAll_ 方法，它们都返回 Promise 对象，两种转换器使用 _isTorrential()_ 方法来区分。具体请参见 [panto-transformer-browserify](https://github.com/pantojs/panto-transformer-browserify) 与 [panto-transformer-uglify](https://github.com/pantojs/panto-transformer-uglify) 的不同实现。
+
+如果转换器是严格幂等的，则是可缓存的，这通过 _isCacheable()_ 方法来区分。
 
 ## 核心特征
 
