@@ -358,6 +358,18 @@ class Panto extends EventEmitter {
         return watcher;
     }
     /**
+     * Safe emit
+     * 
+     * @param  {...mixin} args
+     */
+    trigger(...args) {
+        try { 
+            this.emit(...args);
+        } catch(e) {
+            // empty
+        }
+    }
+    /**
      * Walk all the streams and flow.
      * 
      * @return {Promise}
@@ -368,7 +380,7 @@ class Panto extends EventEmitter {
             const ret = [];
             let sIdx = -1;
             
-            this.emit('start', BUILD_ID);
+            this.trigger('start', BUILD_ID);
 
             const _walkStream = () => {
                 sIdx += 1;
@@ -387,7 +399,7 @@ class Panto extends EventEmitter {
                     } else {
                         const FLOW_ID = Date.now();
 
-                        this.emit('flowstart', {
+                        this.trigger('flowstart', {
                             tag: stream.tag
                         }, FLOW_ID, BUILD_ID);
 
@@ -396,7 +408,7 @@ class Panto extends EventEmitter {
                         stream.flow(files.values())
                             .then(
                                 data => {
-                                    this.emit('flowend', {
+                                    this.trigger('flowend', {
                                         tag: stream.tag
                                     }, FLOW_ID, BUILD_ID);
 
@@ -409,10 +421,10 @@ class Panto extends EventEmitter {
 
             _walkStream();
         }).then(files => {
-            this.emit('complete', files, BUILD_ID);
+            this.trigger('complete', files, BUILD_ID);
             return files;
         }).catch(err => {
-            this.emit('error', err, BUILD_ID);
+            this.trigger('error', err, BUILD_ID);
             throw err;
         });
     }
@@ -469,6 +481,7 @@ class Panto extends EventEmitter {
 
         // Rest streams may be more than one
         const restStreamIdxes = [];
+        let isDeservedTransform = false;
         
         for (let i = 0; i < filesShouldBeTransformedAgain.length; ++i) {
             let matched = false;
@@ -484,15 +497,22 @@ class Panto extends EventEmitter {
                 } else if (this.file.match(filesShouldBeTransformedAgain[i].filename, pattern).length) {
                     files.fix(filesShouldBeTransformedAgain[i]);
                     matched = true;
+                    isDeservedTransform = true;
                 }
             }
 
             if (!matched) {
                 restStreamIdxes.forEach(restStreamIdx => {
+                    isDeservedTransform = true;
                     this._streamWrappers[restStreamIdx].files.fix(filesShouldBeTransformedAgain[i]);
                 });
             }
         }
+
+        if (!isDeservedTransform) {
+            return Promise.resolve([]);
+        }
+
         return this.walkStream();
     }
 }
