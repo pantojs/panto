@@ -91,7 +91,7 @@ describe('panto', () => {
 
     describe('#build', function () {
         this.timeout(5e3);
-        it('should get all the files', done => {
+        it('should get all the files', () => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -101,7 +101,7 @@ describe('panto', () => {
             panto.pick(['**/*.js']).tag('js');
             panto.pick(['**/*.css']).tag('css');
 
-            panto.build().then(files => {
+            return panto.build().then(files => {
                 assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
                     'match "javascripts/a.js"');
                 assert.ok(files.some(file => file.filename === 'javascripts/b.js'),
@@ -110,9 +110,9 @@ describe('panto', () => {
                     'match "stylesheets/a.css"');
                 assert.ok(files.some(file => file.filename === 'stylesheets/b.css'),
                     'match "stylesheets/b.css"');
-            }).then(() => done());
+            });
         });
-        it('should support equative src & output', done => {
+        it('should support equative src & output', () => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -123,14 +123,14 @@ describe('panto', () => {
 
             const filename = `r/r-${Date.now()}.txt`;
 
-            panto.file.write(filename, 'out').then(() => {
+            return panto.file.write(filename, 'out').then(() => {
                 assert.ok(fs.existsSync(__dirname + '/out/' + filename));
                 return panto.file.rimraf('r', {
                     force: true
                 });
-            }).then(() => done()).catch(e => console.error(e));
+            });
         });
-        it('should support serial src&output', done => {
+        it('should support serial src&output', () => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -141,12 +141,12 @@ describe('panto', () => {
 
             const filename = `r/r-${Date.now()}.txt`;
 
-            panto.file.write(filename, 'out').then(() => {
+            return panto.file.write(filename, 'out').then(() => {
                 assert.ok(fs.existsSync(__dirname + '/fixtures/out/' + filename));
                 return panto.file.rimraf('r', {
                     force: true
                 });
-            }).then(() => done()).catch(e => console.error(e));
+            });
         });
         it('should throw if src and output are same', done => {
             const panto = new Panto();
@@ -239,7 +239,7 @@ describe('panto', () => {
 
             panto.build();
         });
-        it('should operate only once when multiple reading on a file', done => {
+        it('should operate only once when multiple reading on a file', () => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -274,11 +274,11 @@ describe('panto', () => {
 
             panto.$('**/a.js').read();
             panto.$('**/a.js').read();
-            panto.build().then(() => {
+            return panto.build().then(() => {
                 assert.deepEqual(readInvoked, 1, 'reading a.js only once');
-            }).then(() => done());
+            });
         });
-        it('should skip dormant streams', done => {
+        it('should skip dormant streams', () => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -302,17 +302,17 @@ describe('panto', () => {
 
             panto.$('**/a.js');
             panto.$('**/b.js', true).pipe(new TestTransformer());
-            panto.build().then(() => {
+            return panto.build().then(() => {
                 return panto.build();
             }).then(() => {
                 assert.deepEqual(invoked, 1, 'skip dormant streams');
-            }).then(() => done()).catch(e => console.error(e));
+            });
         });
     });
 
     describe('#clear', function () {
         this.timeout(2e3);
-        it('should clear streams', done => {
+        it('should clear streams', () => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -321,7 +321,7 @@ describe('panto', () => {
 
             panto.pick('**/*.js').tag('js');
 
-            panto.build().then(files => {
+            return panto.build().then(files => {
                 assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
                     'match "javascripts/a.js"');
                 assert.ok(files.some(file => file.filename === 'javascripts/b.js'),
@@ -331,13 +331,13 @@ describe('panto', () => {
                 return panto.build();
             }).then(files => {
                 assert.deepEqual(files, [], 'no files due to no streams');
-            }).then(() => done());
+            });
         });
     });
 
     describe('#rest', function () {
         this.timeout(3e3);
-        it('should pick the rest', done => {
+        it('should pick the rest', () => {
             const restFiles = [];
 
             class FinalTransformer extends Transformer {
@@ -361,15 +361,15 @@ describe('panto', () => {
             panto.pick('**/*.js').tag('js');
             panto.pick('**/*.css').tag('css');
 
-            panto.build().then(() => {
+            return panto.build().then(() => {
                 assert.ok(restFiles.some(file => file.filename === 'README.md'),
                     '"README.md" rested');
-            }).then(() => done()).catch(e => console.error(e));
+            });
         });
     });
     describe('#onFileDiff', function () {
         this.timeout(5e3);
-        it('add and remove', done => {
+        it('add and remove', () => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -379,7 +379,7 @@ describe('panto', () => {
             panto.pick('**/*.js').tag('js');
             panto.rest().tag('rest');
 
-            panto.build().then(() => {
+            return panto.build().then(() => {
                 return panto._onFileDiff({
                     filename: 'javascripts/c.js',
                     cmd: 'add'
@@ -409,7 +409,7 @@ describe('panto', () => {
             }).then(files => {
                 assert.ok(!files.some(file => file.filename === 'rest.txt'),
                     '"rest.txt" remove');
-            }).then(() => done()).catch(e => console.error(e));
+            });
 
         });
     });
