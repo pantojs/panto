@@ -1,6 +1,8 @@
 # PantoJS<sup>®</sup>
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
+[![NPM](https://nodei.co/npm/panto.png?downloads&downloadRank)](https://nodei.co/npm/panto/)
+
 #### [中文版 README](README_CN.md)
 
 _**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine transforming files. It is usually used for building projects, especially web front-end projects.
