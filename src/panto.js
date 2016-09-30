@@ -21,7 +21,7 @@
  * 2016-09-01[18:31:20]:add id for building events
  *
  * @author yanni4night@gmail.com
- * @version 0.1.0-alpha.1
+ * @version 0.1.0-alpha.2
  * @since 0.0.1
  */
 'use strict';
@@ -323,7 +323,7 @@ class Panto extends EventEmitter {
         }
 
         const watcher = chokidar.watch(`**/*`, watchOptions);
-        
+
         watcher.on('add', path => {
                 this.log.info(`File ${path} has been added`);
                 this._onFileDiff({

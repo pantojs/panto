@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.1.0-alpha.1
+ * @version 0.1.0-alpha.2
  * @since 0.0.1
  */
 'use strict';
@@ -218,7 +218,6 @@ describe('panto', () => {
         });
         it('should emit error event', done => {
             const panto = new Panto();
-
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });

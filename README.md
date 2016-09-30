@@ -1,5 +1,5 @@
 # PantoJS<sup>®</sup>
-[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url] [![Stories in Ready][waffle-image]][waffle-url]
+[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
 #### [中文版 README](README_CN.md)
 
@@ -11,7 +11,7 @@ It works like [Grunt](http://gruntjs.com) or [Gulp](http://gulpjs.com), but more
 
 + Any building process topology
 
-  > _Panto_ supports almost any building process
+> _Panto_ supports almost any building process
 
 
 + Collecting rest files
