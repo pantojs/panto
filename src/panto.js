@@ -68,8 +68,11 @@ class Panto extends EventEmitter {
         defineFrozenProperty(this, '_dependencies', new DependencyMap());
         defineFrozenProperty(this, '_fileDiffQueue', []);
         this.isFlowing = false;
+
+        // flow is timeouted
         this._reflowTimeout = null;
 
+        // Sync "isFlowing" status
         this.on('start', () => {
             this.isFlowing = true;
         });
@@ -125,7 +128,7 @@ class Panto extends EventEmitter {
             throw new Error(`src and output should be different`);
         }
 
-        // Ignore output
+        // Ignore output directory when walking
         if (subdir(src, output)) {
             const rel = path.relative(src, output);
             globOptions.ignore = `${rel}/**/*`;
@@ -316,10 +319,10 @@ class Panto extends EventEmitter {
             cwd: src
         };
 
-        // Ignore output
+        // Ignore output directory when watching
         if(subdir(src, output)) {
             const rel = path.relative(src, output);
-            watchOptions.ignored = [`${rel}/**/*`, /^\./];
+            watchOptions.ignored = [`${rel}/**/*`, '.git/**/*', '.svn/**/*'];
         }
 
         const watcher = chokidar.watch(`**/*`, watchOptions);
@@ -509,6 +512,7 @@ class Panto extends EventEmitter {
             }
         }
 
+        // Nothing has to be done
         if (!isDeservedTransform) {
             return Promise.resolve([]);
         }
