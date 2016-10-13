@@ -1,4 +1,4 @@
-# PantoJS<sup>®</sup>
+# ![panto](http://ww2.sinaimg.cn/large/801b780ajw1f8p7k48s9mj20b403c3yh.jpg)
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
 [![NPM](https://nodei.co/npm/panto.png?downloads&downloadRank)](https://nodei.co/npm/panto/)
