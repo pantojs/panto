@@ -5,7 +5,7 @@
 
 #### [中文版 README](README_CN.md)
 
-_**[PantoJS](http://pantojs.xyz/)**_ is an ***extremely flexible*** engine transforming files. It is usually used for building projects, especially web front-end projects.
+_**[PantoJS](http://pantojs.xyz/)**_ is an ***extremely flexible*** file transforming engine. It is usually used for building projects, especially web front-end projects.
 
 It works like [Grunt](http://gruntjs.com) or [Gulp](http://gulpjs.com), but more **efficient**, **powerful** and **flexible**. 
 
@@ -14,7 +14,6 @@ It works like [Grunt](http://gruntjs.com) or [Gulp](http://gulpjs.com), but more
 + Any building process topology
 
 > _Panto_ supports almost any building process
-
 
 + Collecting rest files
 
@@ -26,7 +25,7 @@ It works like [Grunt](http://gruntjs.com) or [Gulp](http://gulpjs.com), but more
 
 + Transform a file once at most
 
-> Avoid duplicated  processing
+> Avoid duplicated processing
 
 + Cache at file
 
@@ -38,17 +37,17 @@ It works like [Grunt](http://gruntjs.com) or [Gulp](http://gulpjs.com), but more
 
 ## Panto vs Grunt/Gulp
 
-|                    | Grunt | Gulp | Panto |
-| ------------------ | ----- | ---- | ----- |
-| Stream task        | ✘     | ✔    | ✔     |
-| Topology process   | ✘     | ✘    | ✔     |
-| Read once          | ✘     | ✘    | ✔     |
-| Accurate cache     | ✘     | ✘    | ✔     |
-| Accurate increment | ✘     | ✘    | ✔     |
+|                     | Grunt | Gulp | Panto |
+| ------------------- | ----- | ---- | ----- |
+| Stream task         | ✘     | ✔    | ✔     |
+| Topological process | ✘     | ✘    | ✔     |
+| Read once           | ✘     | ✘    | ✔     |
+| Accurate cache      | ✘     | ✘    | ✔     |
+| Accurate increment  | ✘     | ✘    | ✔     |
 
 ## Quick Start
 
-Like _Grunt_ or _Gulp_, _Panto_ need a process configurable file _pantofile.js_  in root directory of your project, [coffeescript](http://coffeescript.org) syntax is not supported. A simplest  _pantofile.js_ contains:
+Like _Grunt_ or _Gulp_, _Panto_ needs a process configurable file _pantofile.js_ in root directory of your project, [coffeescript](http://coffeescript.org) syntax is not supported. A simplest  _pantofile.js_ contains:
 
 ```javascript
 module.exports = panto => {};
@@ -174,7 +173,7 @@ class FooTransformer extends Transformer {
 module.exports = FooTransformer;
 ```
 
-If the files are transformed independently, just implement _\_transform()_ function, or else _transformAll()_, they both return `Promise` object, distinguished by _isTorrential()_ function. Please see  [panto-transformer-browserify](https://github.com/pantojs/panto-transformer-browserify) 与  [panto-transformer-uglify](https://github.com/pantojs/panto-transformer-uglify).
+If the files are transformed independently, just implement _\_transform()_ function, or else _transformAll()_, they both return `Promise` object, distinguished by _isTorrential()_ function. Please see  [panto-transformer-browserify](https://github.com/pantojs/panto-transformer-browserify) and [panto-transformer-uglify](https://github.com/pantojs/panto-transformer-uglify).
 
 If a transformer is idempotent strictly, it's cacheable, _isCacheable()_ returns true. Any factors beyond file content that affect transforming results between two transformings will lead to uncacheable. E.g., for calculating md5 of content, same content result in same md5 value, affected by no factors. As another example, appending current date time to file content result in uncacheable, of course.
 
@@ -182,7 +181,7 @@ Input and output of transformers are files or file arrays. A file is a plain Jav
 
 ## Stream
 
-_Panto_ use _stream_ to define transforming tasks. As a node, streams consist of a directed acyclic graph.
+_Panto_ uses _stream_ to define transforming tasks. As a node, streams consist of a directed acyclic graph.
 
 ```javascript
 const Stream = require('panto').Stream;
@@ -205,7 +204,7 @@ A stream needs a transformer as a constructing parameter, or nothing is acceptab
 new Stream(new Transformer())
 ```
 
-By defining topology streams and transformers, you can describe how to build a project easily and clearly. The following is a complicated building process topology:
+By defining topological streams and transformers, you can describe how to build a project easily and clearly. The following is a complicated building process topology:
 
 ![panto topology](panto.png)
 
