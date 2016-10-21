@@ -1,7 +1,7 @@
 {
   "name": "panto",
-  "version": "0.1.0-alpha.2",
-  "description": "PantoJS®️ is an extreme flexible engine transforming files",
+  "version": "0.1.0-alpha.3",
+  "description": "PantoJS is an extreme flexible engine transforming files",
   "main": "index.js",
   "scripts": {
     "test": "eslint src test && npm run mocha",
@@ -32,15 +32,15 @@
   "homepage": "https://github.com/pantojs/panto#readme",
   "dependencies": {
     "callback2promise": "^1.0.2",
-    "chokidar": "^1.5.2",
+    "chokidar": "^1.6.1",
     "define-frozen-property": "^0.1.0",
-    "glob": "^7.1.0",
-    "lodash": "^4.16.2",
+    "glob": "^7.1.1",
+    "lodash": "^4.16.4",
     "panto-dependency-map": "^0.2.1",
-    "panto-file-utils": "^0.3.0",
+    "panto-file-utils": "^0.3.1",
     "panto-logger": "^0.2.2",
-    "panto-options": "^0.1.1",
-    "panto-stream": "^0.7.7",
+    "panto-options": "^0.1.2",
+    "panto-stream": "^0.7.8",
     "subdir": "0.0.3"
   },
   "devDependencies": {

@@ -19,9 +19,10 @@
  * 2016-08-18[13:28:07]:remove log
  * 2016-08-19[17:49:18]:dormant stream supported
  * 2016-09-01[18:31:20]:add id for building events
+ * 2016-10-21[13:06:51]:add watch_ignore option
  *
  * @author yanni4night@gmail.com
- * @version 0.1.0-alpha.2
+ * @version 0.1.0-alpha.3
  * @since 0.0.1
  */
 'use strict';
@@ -55,7 +56,8 @@ class Panto extends EventEmitter {
             cwd: process.cwd(),
             src: '.',
             output: 'output',
-            binary_resource: ''
+            binary_resource: '',
+            watch_ignore: []
         });
         
         defineFrozenProperty(this, 'Stream', PantoStream, true);
@@ -322,7 +324,21 @@ class Panto extends EventEmitter {
         // Ignore output directory when watching
         if(subdir(src, output)) {
             const rel = path.relative(src, output);
-            watchOptions.ignored = [`${rel}/**/*`, '.git/**/*', '.svn/**/*'];
+            let watchIgnore = this.options.get('watch_ignore');
+
+            if (lodash.isFunction(watchIgnore)) {
+                watchIgnore = watchIgnore();
+            }
+
+            if (lodash.isString(watchIgnore)) {
+                watchIgnore = [watchIgnore];
+            } else if (Array.isArray(watchIgnore)) {
+                watchIgnore = watchIgnore.filter(lodash.isString);
+            } else {
+                watchIgnore = [];
+            }
+
+            watchOptions.ignored = [`${rel}/**/*`, '.git/**/*', '.svn/**/*'].concat(watchIgnore);
         }
 
         const watcher = chokidar.watch(`**/*`, watchOptions);
