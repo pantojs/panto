@@ -61,19 +61,18 @@ describe('panto', () => {
         });
     });
     describe('#getFiles', () => {
-        it('should get the files', done => {
+        it('should get the files', () => {
             const panto = new Panto();
 
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
 
-            panto.getFiles().then(filenames => {
+            return panto.getFiles().then(filenames => {
                 assert.ok(filenames.indexOf('javascripts/a.js') > -1,
                     'found "javascripts/a.js"');
                 assert.ok(filenames.indexOf('javascripts/b.js') > -1,
                     'found "javascripts/b.js"');
-                done();
             });
         });
         it('should throw if src and output are same', () => {
