@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/pantojs/panto#readme",
   "dependencies": {
+    "bluebird": "^3.4.6",
     "callback2promise": "^1.0.2",
     "chokidar": "^1.6.1",
     "define-frozen-property": "^0.1.0",
@@ -38,7 +39,7 @@
     "lodash": "^4.16.4",
     "panto-dependency-map": "^0.2.1",
     "panto-file-utils": "^0.3.1",
-    "panto-logger": "^0.2.2",
+    "panto-logger": "^0.2.3",
     "panto-options": "^0.1.2",
     "panto-stream": "^0.7.8",
     "subdir": "0.0.3"

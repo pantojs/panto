@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.1.0-alpha.2
+ * @version 0.1.0-alpha.3
  * @since 0.0.1
  */
 'use strict';
@@ -90,6 +90,11 @@ describe('panto', () => {
 
     describe('#build', function () {
         this.timeout(5e3);
+        it('empty', () => {
+            return new Panto().setOptions({
+                cwd: __dirname + '/fixtures/'
+            }).build();
+        });
         it('should get all the files', () => {
             const panto = new Panto();
 
@@ -235,7 +240,7 @@ describe('panto', () => {
                 done();
             });
 
-            panto.build();
+            panto.build().catch(() => {});
         });
         it('should operate only once when multiple reading on a file', () => {
             const panto = new Panto();

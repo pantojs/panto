@@ -47,6 +47,8 @@ const FileCollection = require('./file-collection');
 
 const {isString, camelCase, flattenDeep, uniq} = lodash;
 
+global.Promise = require('bluebird');
+
 /** Class representing a panto */
 class Panto extends EventEmitter {
     constructor() {
@@ -433,7 +435,7 @@ class Panto extends EventEmitter {
 
                                     ret.push(data);
                                     _walkStream();
-                                }).catch(reject);
+                                }, reject);
                     }
                 }
             };
@@ -442,7 +444,7 @@ class Panto extends EventEmitter {
         }).then(files => {
             this.trigger('complete', files, BUILD_ID);
             return files;
-        }).catch(err => {
+        }, err => {
             this.trigger('error', err, BUILD_ID);
             throw err;
         });
@@ -471,11 +473,13 @@ class Panto extends EventEmitter {
 
         clearTimeout(this._reflowTimeout);
 
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             this._reflowTimeout = setTimeout(() => {
                 // Await flowing complete
                 if (!this.isFlowing) {
-                    this._dispatchFileChange().then(resolve);
+                    this._dispatchFileChange().then(resolve, reject);
+                } else {
+                    resolve([]);
                 }
             }, 500);
         });
