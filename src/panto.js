@@ -22,7 +22,7 @@
  * 2016-10-21[13:06:51]:add watch_ignore option
  *
  * @author yanni4night@gmail.com
- * @version 0.1.0-alpha.3
+ * @version 0.1.0-alpha.4
  * @since 0.0.1
  */
 'use strict';
@@ -46,8 +46,6 @@ const DependencyMap = require('panto-dependency-map');
 const FileCollection = require('./file-collection');
 
 const {isString, camelCase, flattenDeep, uniq} = lodash;
-
-global.Promise = require('bluebird');
 
 /** Class representing a panto */
 class Panto extends EventEmitter {

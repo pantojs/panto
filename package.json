@@ -1,6 +1,6 @@
 {
   "name": "panto",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "description": "PantoJS is an extreme flexible engine transforming files",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,6 @@
   },
   "homepage": "https://github.com/pantojs/panto#readme",
   "dependencies": {
-    "bluebird": "^3.4.6",
     "callback2promise": "^1.0.2",
     "chokidar": "^1.6.1",
     "define-frozen-property": "^0.1.0",

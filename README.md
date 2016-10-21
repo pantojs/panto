@@ -1,4 +1,4 @@
-# ![panto](http://ww2.sinaimg.cn/large/801b780ajw1f8p7k48s9mj20b403c3yh.jpg)
+# ![panto](https://cloud.githubusercontent.com/assets/1710436/19589327/3877fd5c-979e-11e6-8e72-3dea494a52f5.png)
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
 [![NPM](https://nodei.co/npm/panto.png?downloads&downloadRank)](https://nodei.co/npm/panto/)
@@ -242,6 +242,10 @@ module.exports = panto => {
 ```javascript
 const panto = require('panto');
 
+panto.setOptions({
+    
+});
+
 panto.on('start', buildId => {})
     .on('flowstart', ({tag}, flowId) => {})
     .on('flowend', ({tag}, flowId) => {})
@@ -253,7 +257,13 @@ panto.build().then(() => {
 });
 ```
 
+## Options
 
+ - cwd: string, current working directory, default `process.cwd()`
+ - src: string, source directory, default '.'
+ - output: output string, file directory, default 'output' 
+ - binary_resource: string, binary file extensions, e.g. 'zip,tar,jpg', default is same as [binary-extensions](http://npmjs.org/binary-extensions)
+ - watch_ignore: array, ignored files when watching, e.g. '["**/*.pyc", "**/*.class"]', default is []
 
 ## Boilerplate
 

@@ -1,4 +1,4 @@
-# ![panto](http://ww2.sinaimg.cn/large/801b780ajw1f8p7k48s9mj20b403c3yh.jpg)
+# ![panto](https://cloud.githubusercontent.com/assets/1710436/19589327/3877fd5c-979e-11e6-8e72-3dea494a52f5.png)
 [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
 [![NPM](https://nodei.co/npm/panto.png?downloads&downloadRank)](https://nodei.co/npm/panto/)
@@ -241,6 +241,10 @@ module.exports = panto => {
 ```javascript
 const panto = require('panto');
 
+panto.setOptions({
+    
+});
+
 panto.on('start', buildId => {})
     .on('flowstart', ({tag}, flowId) => {})
     .on('flowend', ({tag}, flowId) => {})
@@ -252,7 +256,13 @@ panto.build().then(() => {
 });
 ```
 
+## 选项
 
+ - cwd: 字符串，当前工作目录，默认同 `process.cwd()`
+ - src: 字符串，源码目录，默认 '.'
+ - output: 文件输出目录，默认 'output' 
+ - binary_resource: 字符串，二进制文件扩展名，如 'zip,tar,jpg'，默认同 [binary-extensions](http://npmjs.org/binary-extensions)
+ - watch_ignore: 数组，忽略的文件监视类型，如 '["**/*.pyc", "**/*.class"]'，默认 []
 
 ## 模板
 
@@ -278,8 +288,6 @@ panto.build().then(() => {
 - [copy](https://github.com/pantojs/panto-transformer-copy)
 - [resource](https://github.com/pantojs/panto-transformer-resource)
 - [banner](https://github.com/pantojs/panto-transformer-banner)
-
-
 
 [npm-url]: https://npmjs.org/package/panto
 [downloads-image]: http://img.shields.io/npm/dm/panto.svg
