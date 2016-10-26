@@ -1,5 +1,5 @@
 # ![panto](https://cloud.githubusercontent.com/assets/1710436/19589327/3877fd5c-979e-11e6-8e72-3dea494a52f5.png)
-[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
+[![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Build status][appveyor-image]][appveyor-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Dependency status][david-dm-image]][david-dm-url] [![Dev Dependency status][david-dm-dev-image]][david-dm-dev-url]
 
 [![NPM](https://nodei.co/npm/panto.png?downloads&downloadRank)](https://nodei.co/npm/panto/)
 
@@ -294,6 +294,8 @@ panto.build().then(() => {
 [npm-image]: http://img.shields.io/npm/v/panto.svg
 [travis-url]: https://travis-ci.org/pantojs/panto
 [travis-image]: http://img.shields.io/travis/pantojs/panto.svg
+[appveyor-url]: https://ci.appveyor.com/project/yanni4night/panto-q51dg
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/2obj09670i41foek?svg=true
 [david-dm-url]: https://david-dm.org/pantojs/panto
 [david-dm-image]: https://david-dm.org/pantojs/panto.svg
 [david-dm-dev-url]: https://david-dm.org/pantojs/panto?type=dev
