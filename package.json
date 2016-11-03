@@ -1,11 +1,11 @@
 {
   "name": "panto",
-  "version": "0.1.0-rc.1",
+  "version": "0.2.0",
   "description": "PantoJS is an extreme flexible file transforming engine",
   "main": "index.js",
   "scripts": {
     "test": "eslint src test && npm run mocha",
-    "mocha": "./node_modules/.bin/mocha",
+    "mocha": "./node_modules/.bin/mocha --harmony",
     "coveralls": "istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
   "precommit": "test",
@@ -22,7 +22,7 @@
     "transform"
   ],
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=7.0.0"
   },
   "author": "yanni4night@gmail.com",
   "license": "Apache-2.0",

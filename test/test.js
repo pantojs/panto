@@ -6,7 +6,7 @@
  * 2016-06-21[19:03:41]:revised
  *
  * @author yanni4night@gmail.com
- * @version 0.1.0-alpha.3
+ * @version 0.2.0
  * @since 0.0.1
  */
 'use strict';
@@ -61,41 +61,41 @@ describe('panto', () => {
         });
     });
     describe('#getFiles', () => {
-        it('should get the files', () => {
+        it('should get the files', async() => {
             const panto = new Panto();
 
             panto.setOptions({
                 cwd: __dirname + '/fixtures/'
             });
 
-            return panto.getFiles().then(filenames => {
-                assert.ok(filenames.indexOf('javascripts/a.js') > -1,
-                    'found "javascripts/a.js"');
-                assert.ok(filenames.indexOf('javascripts/b.js') > -1,
-                    'found "javascripts/b.js"');
-            });
+            const filenames = await panto.getFiles();
+
+            assert.ok(filenames.indexOf('javascripts/a.js') > -1,
+                'found "javascripts/a.js"');
+            assert.ok(filenames.indexOf('javascripts/b.js') > -1,
+                'found "javascripts/b.js"');
         });
-        it('should throw if src and output are same', () => {
+        it('should throw if src and output are same', (done) => {
             const panto = new Panto();
             panto.setOptions({
                 cwd: '.',
                 src: 'foo',
                 output: './foo'
             });
-            assert.throws(() => {
-                panto.getFiles();
-            }, 'throws error');
+            (async() => {
+                await panto.getFiles();
+            })().catch(() => done());
         });
     });
 
     describe('#build', function () {
         this.timeout(5e3);
-        it('empty', () => {
-            return new Panto().setOptions({
+        it('empty', async() => {
+            await new Panto().setOptions({
                 cwd: __dirname + '/fixtures/'
             }).build();
         });
-        it('should get all the files', () => {
+        it('should get all the files', async() => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -105,18 +105,18 @@ describe('panto', () => {
             panto.pick(['**/*.js']).tag('js');
             panto.pick(['**/*.css']).tag('css');
 
-            return panto.build().then(files => {
-                assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
-                    'match "javascripts/a.js"');
-                assert.ok(files.some(file => file.filename === 'javascripts/b.js'),
-                    'match "javascripts/a.js"');
-                assert.ok(files.some(file => file.filename === 'stylesheets/a.css'),
-                    'match "stylesheets/a.css"');
-                assert.ok(files.some(file => file.filename === 'stylesheets/b.css'),
-                    'match "stylesheets/b.css"');
-            });
+            const files = await panto.build();
+
+            assert.ok(files.find(file => file.filename === 'javascripts/a.js'),
+                'match "javascripts/a.js"');
+            assert.ok(files.find(file => file.filename === 'javascripts/b.js'),
+                'match "javascripts/a.js"');
+            assert.ok(files.find(file => file.filename === 'stylesheets/a.css'),
+                'match "stylesheets/a.css"');
+            assert.ok(files.find(file => file.filename === 'stylesheets/b.css'),
+                'match "stylesheets/b.css"');
         });
-        it('should support equative src & output', () => {
+        it('should support equative src & output', async() => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -127,14 +127,14 @@ describe('panto', () => {
 
             const filename = `r/r-${Date.now()}.txt`;
 
-            return panto.file.write(filename, 'out').then(() => {
-                assert.ok(fs.existsSync(__dirname + '/out/' + filename));
-                return panto.file.rimraf('r', {
-                    force: true
-                });
+            await panto.file.write(filename, 'out');
+            assert.ok(fs.existsSync(__dirname + '/out/' + filename));
+
+            await panto.file.rimraf('r', {
+                force: true
             });
         });
-        it('should support serial src&output', () => {
+        it('should support serial src&output', async() => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -145,22 +145,10 @@ describe('panto', () => {
 
             const filename = `r/r-${Date.now()}.txt`;
 
-            return panto.file.write(filename, 'out').then(() => {
-                assert.ok(fs.existsSync(__dirname + '/fixtures/out/' + filename));
-                return panto.file.rimraf('r', {
-                    force: true
-                });
-            });
-        });
-        it('should throw if src and output are same', done => {
-            const panto = new Panto();
-            panto.setOptions({
-                cwd: '.',
-                src: 'foo',
-                output: './foo'
-            });
-            panto.build().catch(() => {
-                done();
+            await panto.file.write(filename, 'out');
+            assert.ok(fs.existsSync(__dirname + '/fixtures/out/' + filename));
+            await panto.file.rimraf('r', {
+                force: true
             });
         });
         it('should emit start event', done => {
@@ -181,6 +169,9 @@ describe('panto', () => {
                 cwd: __dirname + '/fixtures/'
             });
             panto.$('**/*').tag('ALL');
+            panto.on('error', (err) => {
+                console.error(err);
+            });
             panto.on('complete', (files, id) => {
                 assert.ok(files);
                 assert.ok(id);
@@ -240,9 +231,9 @@ describe('panto', () => {
                 done();
             });
 
-            panto.build().catch(() => {});
+            panto.build();
         });
-        it('should operate only once when multiple reading on a file', () => {
+        it('should operate only once when multiple reading on a file', async() => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -277,11 +268,11 @@ describe('panto', () => {
 
             panto.$('**/a.js').read();
             panto.$('**/a.js').read();
-            return panto.build().then(() => {
-                assert.deepEqual(readInvoked, 1, 'reading a.js only once');
-            });
+
+            await panto.build();
+            assert.deepEqual(readInvoked, 1, 'reading a.js only once');
         });
-        it('should skip dormant streams', () => {
+        it('should skip dormant streams', async() => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -305,17 +296,16 @@ describe('panto', () => {
 
             panto.$('**/a.js');
             panto.$('**/b.js', true).pipe(new TestTransformer());
-            return panto.build().then(() => {
-                return panto.build();
-            }).then(() => {
-                assert.deepEqual(invoked, 1, 'skip dormant streams');
-            });
+
+            await panto.build();
+            await panto.build();
+            assert.deepEqual(invoked, 1, 'skip dormant streams');
         });
     });
 
     describe('#clear', function () {
         this.timeout(2e3);
-        it('should clear streams', () => {
+        it('should clear streams', async() => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -324,23 +314,20 @@ describe('panto', () => {
 
             panto.pick('**/*.js').tag('js');
 
-            return panto.build().then(files => {
-                assert.ok(files.some(file => file.filename === 'javascripts/a.js'),
-                    'match "javascripts/a.js"');
-                assert.ok(files.some(file => file.filename === 'javascripts/b.js'),
-                    'match "javascripts/a.js"');
-            }).then(() => {
-                assert.deepEqual(panto.clear(), panto, 'clear() return self');
-                return panto.build();
-            }).then(files => {
-                assert.deepEqual(files, [], 'no files due to no streams');
-            });
+            let files = await panto.build();
+            assert.ok(files.find(file => file.filename === 'javascripts/a.js'),
+                'match "javascripts/a.js"');
+            assert.ok(files.find(file => file.filename === 'javascripts/b.js'),
+                'match "javascripts/a.js"');
+            assert.deepEqual(panto.clear(), panto, 'clear() return self');
+            files = panto.build();
+            assert.deepEqual(files, [], 'no files due to no streams');
         });
     });
 
     describe('#rest', function () {
         this.timeout(3e3);
-        it('should pick the rest', () => {
+        it('should pick the rest', async() => {
             const restFiles = [];
 
             class FinalTransformer extends Transformer {
@@ -364,15 +351,15 @@ describe('panto', () => {
             panto.pick('**/*.js').tag('js');
             panto.pick('**/*.css').tag('css');
 
-            return panto.build().then(() => {
-                assert.ok(restFiles.some(file => file.filename === 'README.md'),
-                    '"README.md" rested');
-            });
+            await panto.build();
+
+            assert.ok(restFiles.some(file => file.filename === 'README.md'),
+                '"README.md" rested');
         });
     });
     describe('#onFileDiff', function () {
         this.timeout(5e3);
-        it('add and remove', () => {
+        it('add and remove', async() => {
             const panto = new Panto();
 
             panto.setOptions({
@@ -382,43 +369,39 @@ describe('panto', () => {
             panto.pick('**/*.js').tag('js');
             panto.rest().tag('rest');
 
-            return panto.build().then(() => {
-                return panto._onFileDiff({
-                    filename: 'javascripts/c.js',
-                    cmd: 'add'
-                });
-            }).then(files => {
-                assert.ok(files.some(file => file.filename === 'javascripts/c.js'),
-                    '"javascripts/c.js" added');
-                return panto._onFileDiff({
-                    filename: 'javascripts/c.js',
-                    cmd: 'remove'
-                });
-            }).then(files => {
-                assert.ok(!files.some(file => file.filename === 'javascripts/c.js'),
-                    '"javascripts/c.js" removed');
-            }).then(() => {
-                return panto._onFileDiff({
-                    filename: 'rest.txt',
-                    cmd: 'add'
-                });
-            }).then(files => {
-                assert.ok(files.some(file => file.filename === 'rest.txt'),
-                    '"rest.txt" added');
-                return panto._onFileDiff({
-                    filename: 'rest.txt',
-                    cmd: 'remove'
-                });
-            }).then(files => {
-                assert.ok(!files.some(file => file.filename === 'rest.txt'),
-                    '"rest.txt" remove');
+            await panto.build();
+
+            let files = await panto._onFileDiff({
+                filename: 'javascripts/c.js',
+                cmd: 'add'
             });
+            assert.ok(files.find(file => file.filename === 'javascripts/c.js'),
+                '"javascripts/c.js" added');
+            files = await panto._onFileDiff({
+                filename: 'javascripts/c.js',
+                cmd: 'remove'
+            });
+            assert.ok(!files.find(file => file.filename === 'javascripts/c.js'),
+                '"javascripts/c.js" removed');
+            files = await panto._onFileDiff({
+                filename: 'rest.txt',
+                cmd: 'add'
+            });
+            assert.ok(files.find(file => file.filename === 'rest.txt'),
+                '"rest.txt" added');
+            files = await panto._onFileDiff({
+                filename: 'rest.txt',
+                cmd: 'remove'
+            });
+
+            assert.ok(!files.find(file => file.filename === 'rest.txt'),
+                '"rest.txt" remove');
 
         });
     });
 
     describe('#reportDependencies', function () {
-        it('should transform dependencies too', done => {
+        it('should transform dependencies too', async() => {
             const panto = new Panto();
             const Stream = panto.Stream;
 
@@ -486,16 +469,14 @@ describe('panto', () => {
             panto.pick('**/*.js').tag('js').read().connect(new Stream(new ModifyTransformer()))
                 .connect(new Stream(new JsTransformer()));
 
-            panto.build().then(() => {
-                panto.reportDependencies('javascripts/a.js', 'stylesheets/a.css');
-                return panto._onFileDiff({
-                    filename: 'stylesheets/a.css',
-                    cmd: 'change'
-                });
-            }).then(() => {
-                assert.deepEqual(readInvoked, 3, 'read three times');
-                assert.deepEqual(jsInvoked, 3);
-            }).then(() => done()).catch(e => console.error(e));
+            await panto.build();
+            panto.reportDependencies('javascripts/a.js', 'stylesheets/a.css');
+            await panto._onFileDiff({
+                filename: 'stylesheets/a.css',
+                cmd: 'change'
+            });
+            assert.deepEqual(readInvoked, 3, 'read three times');
+            assert.deepEqual(jsInvoked, 3);
         });
     });
     describe('#loadTransformer', () => {

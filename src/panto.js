@@ -20,9 +20,10 @@
  * 2016-08-19[17:49:18]:dormant stream supported
  * 2016-09-01[18:31:20]:add id for building events
  * 2016-10-21[13:06:51]:add watch_ignore option
+ * 2016-11-03[11:52:45]:async/await
  *
  * @author yanni4night@gmail.com
- * @version 0.1.0-alpha.4
+ * @version 0.2.0
  * @since 0.0.1
  */
 'use strict';
@@ -45,422 +46,419 @@ const DependencyMap = require('panto-dependency-map');
 
 const FileCollection = require('./file-collection');
 
-const {isString, camelCase, flattenDeep, uniq} = lodash;
+const {
+    isString,
+    camelCase,
+    flattenDeep,
+    uniq
+} = lodash;
 
 /** Class representing a panto */
 class Panto extends EventEmitter {
     constructor() {
-        super();
+            super();
 
-        const options = new Options({
-            cwd: process.cwd(),
-            src: '.',
-            output: 'output',
-            binary_resource: '',
-            watch_ignore: []
-        });
-        
-        defineFrozenProperty(this, 'Stream', PantoStream, true);
-        defineFrozenProperty(this, 'options', options, true);
-        defineFrozenProperty(this, 'file', new FileUtils(options), true);
-        defineFrozenProperty(this, 'log', logger, true);
-        defineFrozenProperty(this, 'util', lodash, true);
-        defineFrozenProperty(this, '_', lodash, true);
-        defineFrozenProperty(this, '_streamWrappers', []);
-        defineFrozenProperty(this, '_dependencies', new DependencyMap());
-        defineFrozenProperty(this, '_fileDiffQueue', []);
-        this.isFlowing = false;
+            const options = new Options({
+                cwd: process.cwd(),
+                src: '.',
+                output: 'output',
+                binary_resource: '',
+                watch_ignore: []
+            });
 
-        // flow is timeouted
-        this._reflowTimeout = null;
-
-        // Sync "isFlowing" status
-        this.on('start', () => {
-            this.isFlowing = true;
-        });
-        this.on('complete', () => {
+            defineFrozenProperty(this, 'Stream', PantoStream, true);
+            defineFrozenProperty(this, 'options', options, true);
+            defineFrozenProperty(this, 'file', new FileUtils(options), true);
+            defineFrozenProperty(this, 'log', logger, true);
+            defineFrozenProperty(this, 'util', lodash, true);
+            defineFrozenProperty(this, '_', lodash, true);
+            defineFrozenProperty(this, '_streamWrappers', []);
+            defineFrozenProperty(this, '_dependencies', new DependencyMap());
+            defineFrozenProperty(this, '_fileDiffQueue', []);
             this.isFlowing = false;
-        });
-        this.on('error', () => {
-            this.isFlowing = false;
-        });
-    }
-    /**
-     * Extend options.
-     * 
-     * @param {object} opt options to extend
-     * @return {Panto} this
-     */
+
+            // flow is timeouted
+            this._reflowTimeout = null;
+
+            // Sync "isFlowing" status
+            this.on('start', () => {
+                this.isFlowing = true;
+            });
+            this.on('complete', () => {
+                this.isFlowing = false;
+            });
+            this.on('error', () => {
+                this.isFlowing = false;
+            });
+        }
+        /**
+         * Extend options.
+         * 
+         * @param {object} opt options to extend
+         * @return {Panto} this
+         */
     setOptions(opt) {
-        this.options.extend(opt);
-        return this;
-    }
-    /**
-     * Get option.
-     * 
-     * @param  {...string} args Same as PantoOptions#get
-     * @return {mixed}
-     */
-    getOption(...args) {
-        return this.options.get(...args);
-    }
-    /**
-     * Get a copy of all the options.
-     * 
-     * @return {object}
-     */
-    getOptions() {
-        return this.options.get();
-    }
-    /**
-     * Search all the files in "cwd" option.
-     * 
-     * @return {Promise}
-     */
-    getFiles() {
-        const src = this.file.locate('.');
-        const output = this.file.touch('.');
-
-        const globOptions = {
-            cwd: src,
-            nodir: true
-        };
-
-        if (src === output) {
-            throw new Error(`src and output should be different`);
-        }
-
-        // Ignore output directory when walking
-        if (subdir(src, output)) {
-            const rel = path.relative(src, output);
-            globOptions.ignore = `${rel}/**/*`;
-        }
-
-        return c2p(glob)('**/*', globOptions);
-    }
-    /**
-     * Report a dependency.
-     *
-     * Panto mantains a MAP, each key-value pair
-     * represents a file and the files it depends on.
-     * The MAP is very important when building incremental
-     * files, aka change/remove/add. When a file change, it 
-     * and the files depend on it all have to be re-built.
-     *
-     * Panto does not care how a file depends or be depended
-     * on another file. It is reported by the transformers.
-     *
-     * For example,
-     *
-     * <code>
-     * class CssUrlTransformer extends Transformer {
-     *     _transform(file) {
-     *         return new Promise(resolve => {
-     *             // "url(...)" analysis
-     *             panto.reportDependencies(file.filename, 'src/img/bg.png', 'src/img/dark.png');
-     *             resolve(file);
-     *         });
-     *     }
-     * }
-     * </code>
-     * 
-     * @param  {string} filename The current files
-     * @param  {Array|string} dependencies The files that current file depends on
-     * @return {Panto} this
-     */
-    reportDependencies(filename, ...dependencies) {
-        if (!filename || !dependencies || !dependencies.length) {
+            this.options.extend(opt);
             return this;
         }
+        /**
+         * Get option.
+         * 
+         * @param  {...string} args Same as PantoOptions#get
+         * @return {mixed}
+         */
+    getOption(...args) {
+            return this.options.get(...args);
+        }
+        /**
+         * Get a copy of all the options.
+         * 
+         * @return {object}
+         */
+    getOptions() {
+            return this.options.get();
+        }
+        /**
+         * Search all the files in "cwd" option.
+         * 
+         * @return {Promise}
+         */
+    async getFiles() {
+            const src = this.file.locate('.');
+            const output = this.file.touch('.');
 
-        this._dependencies.add(filename, ...dependencies);
+            const globOptions = {
+                cwd: src,
+                nodir: true
+            };
+           
+            if (src === output) {
+                throw new Error(`src and output should be different`);
+            }
 
-        return this;
-    }
-    /**
-     * Pick some files matched the pattern and return a head stream.
-     * "Head" means that it has no parent. Beyond that,it has no transformer either.
-     *
-     * Dormant streams flow only once.
-     * 
-     * @param  {string} pattern
-     * @param  {Boolean} isDormant Default is false
-     * @return {PantoStream}
-     */
+            // Ignore output directory when walking
+            if (subdir(src, output)) {
+                const rel = path.relative(src, output);
+                globOptions.ignore = `${rel}/**/*`;
+            }
+
+            return await c2p(glob)('**/*', globOptions);
+        }
+        /**
+         * Report a dependency.
+         *
+         * Panto mantains a MAP, each key-value pair
+         * represents a file and the files it depends on.
+         * The MAP is very important when building incremental
+         * files, aka change/remove/add. When a file change, it 
+         * and the files depend on it all have to be re-built.
+         *
+         * Panto does not care how a file depends or be depended
+         * on another file. It is reported by the transformers.
+         *
+         * For example,
+         *
+         * <code>
+         * class CssUrlTransformer extends Transformer {
+         *     _transform(file) {
+         *         return new Promise(resolve => {
+         *             // "url(...)" analysis
+         *             panto.reportDependencies(file.filename, 'src/img/bg.png', 'src/img/dark.png');
+         *             resolve(file);
+         *         });
+         *     }
+         * }
+         * </code>
+         * 
+         * @param  {string} filename The current files
+         * @param  {Array|string} dependencies The files that current file depends on
+         * @return {Panto} this
+         */
+    reportDependencies(filename, ...dependencies) {
+            if (!filename || !dependencies || !dependencies.length) {
+                return this;
+            }
+
+            this._dependencies.add(filename, ...dependencies);
+
+            return this;
+        }
+        /**
+         * Pick some files matched the pattern and return a head stream.
+         * "Head" means that it has no parent. Beyond that,it has no transformer either.
+         *
+         * Dormant streams flow only once.
+         * 
+         * @param  {string} pattern
+         * @param  {Boolean} isDormant Default is false
+         * @return {PantoStream}
+         */
     pick(pattern, isDormant = false) {
-        if (!isString(pattern) && !Array.isArray(pattern)) {
-            throw new Error(`Pick files with string or array pattern`);
-        }
-        
-        const stream = new PantoStream();
-        
-        this._streamWrappers.push({
-            stream,
-            pattern,
-            isDormant,
-            flowsCount: 0,
-            files: new FileCollection()
-        });
-        return stream;
-    }
-    /**
-     * Alias for pick.
-     * 
-     * @param  {...string}
-     * @return {PantoStream}
-     */
-    $(...args) {
-        return this.pick(...args);
-    }
-    /**
-     * Get the files not picked.
-     * 
-     * @return {PantoStream}
-     */
-    rest() {
-        const stream = new PantoStream();
-        
-        this._streamWrappers.push({
-            stream,
-            pattern: null,
-            files: new FileCollection()
-        });
-        return stream;
-    }
-    /**
-     * Clear all the selected/stream.
-     * 
-     * @return {Panto} this
-     */
-    clear() {
-        this._streamWrappers.splice(0);
-        this._dependencies.clear();
+            if (!isString(pattern) && !Array.isArray(pattern)) {
+                throw new Error(`Pick files with string or array pattern`);
+            }
 
-        return this;
-    }
-    /**
-     * Load a transformer as a shortcut.
-     *
-     * If the second argument is not present,
-     * require("panto-transformer-${name}") as
-     * the transformer class.
-     *
-     * For example,
-     * <code>
-     * panto.loadTransformer('foo')
-     * panto.loadTransformer('bar', BarTransformer)
-     * </code>
-     * 
-     * @param  {string} name transformer name
-     * @param  {Class|undefiend} transformer
-     * @return {Panto} this
-     */
-    loadTransformer(name, transformer) {
-        if (!transformer) {
-            let T = require(`panto-transformer-${name.toLowerCase()}`);
-            PantoStream.prototype[camelCase(name)] = function(opts) {
-                return this.connect(new PantoStream(new T(opts)));
-            };
-        } else {
-            PantoStream.prototype[camelCase(name)] = function(opts) {
-                return this.connect(new PantoStream(new transformer(opts)));
-            };
+            const stream = new PantoStream();
+
+            this._streamWrappers.push({
+                stream,
+                pattern,
+                isDormant,
+                flowsCount: 0,
+                files: new FileCollection()
+            });
+            return stream;
         }
-        return this;
-    }
-    /**
-     * Do the build, including "getFiles",
-     * "onFileDiff" and "walkStream".
-     *
-     * For example,
-     * <code>
-     * panto.build().catch(...)
-     * </code>
-     * 
-     * @return {Promise}
-     */
-    build() {
-        // remove output directory first
-        return this.file.rimraf('.').then(() => {
+        /**
+         * Alias for pick.
+         * 
+         * @param  {...string}
+         * @return {PantoStream}
+         */
+    $(...args) {
+            return this.pick(...args);
+        }
+        /**
+         * Get the files not picked.
+         * 
+         * @return {PantoStream}
+         */
+    rest() {
+            const stream = new PantoStream();
+
+            this._streamWrappers.push({
+                stream,
+                pattern: null,
+                files: new FileCollection()
+            });
+            return stream;
+        }
+        /**
+         * Clear all the selected/stream.
+         * 
+         * @return {Panto} this
+         */
+    clear() {
+            this._streamWrappers.splice(0);
+            this._dependencies.clear();
+
+            return this;
+        }
+        /**
+         * Load a transformer as a shortcut.
+         *
+         * If the second argument is not present,
+         * require("panto-transformer-${name}") as
+         * the transformer class.
+         *
+         * For example,
+         * <code>
+         * panto.loadTransformer('foo')
+         * panto.loadTransformer('bar', BarTransformer)
+         * </code>
+         * 
+         * @param  {string} name transformer name
+         * @param  {Class|undefiend} transformer
+         * @return {Panto} this
+         */
+    loadTransformer(name, transformer) {
+            if (!transformer) {
+                let T = require(`panto-transformer-${name.toLowerCase()}`);
+                PantoStream.prototype[camelCase(name)] = function (opts) {
+                    return this.connect(new PantoStream(new T(opts)));
+                };
+            } else {
+                PantoStream.prototype[camelCase(name)] = function (opts) {
+                    return this.connect(new PantoStream(new transformer(opts)));
+                };
+            }
+            return this;
+        }
+        /**
+         * Do the build, including "getFiles",
+         * "onFileDiff" and "walkStream".
+         *
+         * For example,
+         * <code>
+         * panto.build().catch(...)
+         * </code>
+         * 
+         * @return {Promise}
+         */
+    async build() {
+            // remove output directory first
+
+            await this.file.rimraf('.');
+
             this._streamWrappers.forEach(({
                 stream
             }) => stream.freeze());
 
-            return this.getFiles().then(filenames => {
-                return this._onFileDiff(...filenames.map(filename => ({
-                    filename,
-                    cmd: 'add'
-                })));
-            });
-        });
-    }
-    /**
-     * Watch cwd for any file change.
-     * It should be after build.
-     *
-     * For example,
-     * <code>
-     * panto.on('error', err => {});
-     * panto.on('complete', () => {});
-     * 
-     * panto.build().then(() => {
-     *     panto.watch();
-     * });
-     * </code>
-     * 
-     * @return {Panto} this
-     */
+            const filenames = await this.getFiles();
+
+            const fileObjects = filenames.map(filename => ({
+                filename,
+                cmd: 'add'
+            }));
+
+            return await this._onFileDiff(...fileObjects);
+        }
+        /**
+         * Watch cwd for any file change.
+         * It should be after build.
+         *
+         * For example,
+         * <code>
+         * panto.on('error', err => {});
+         * panto.on('complete', () => {});
+         * 
+         * panto.build().then(() => {
+         *     panto.watch();
+         * });
+         * </code>
+         * 
+         * @return {Panto} this
+         */
     watch() {
-        const src = this.file.locate('.');
-        const output = this.file.touch('.');
-        
-        const watchOptions = {
-            persistent: true,
-            ignoreInitial: true,
-            awaitWriteFinish: true,
-            cwd: src
-        };
+            const src = this.file.locate('.');
+            const output = this.file.touch('.');
 
-        // Ignore output directory when watching
-        if(subdir(src, output)) {
-            const rel = path.relative(src, output);
-            let watchIgnore = this.options.get('watch_ignore');
+            const watchOptions = {
+                persistent: true,
+                ignoreInitial: true,
+                awaitWriteFinish: true,
+                cwd: src
+            };
 
-            if (lodash.isFunction(watchIgnore)) {
-                watchIgnore = watchIgnore();
+            // Ignore output directory when watching
+            if (subdir(src, output)) {
+                const rel = path.relative(src, output);
+                let watchIgnore = this.options.get('watch_ignore');
+
+                if (lodash.isFunction(watchIgnore)) {
+                    watchIgnore = watchIgnore();
+                }
+
+                if (lodash.isString(watchIgnore)) {
+                    watchIgnore = [watchIgnore];
+                } else if (Array.isArray(watchIgnore)) {
+                    watchIgnore = watchIgnore.filter(lodash.isString);
+                } else {
+                    watchIgnore = [];
+                }
+
+                watchOptions.ignored = [`${rel}/**/*`, '.git/**/*', '.svn/**/*'].concat(watchIgnore);
             }
 
-            if (lodash.isString(watchIgnore)) {
-                watchIgnore = [watchIgnore];
-            } else if (Array.isArray(watchIgnore)) {
-                watchIgnore = watchIgnore.filter(lodash.isString);
-            } else {
-                watchIgnore = [];
-            }
+            const watcher = chokidar.watch(`**/*`, watchOptions);
 
-            watchOptions.ignored = [`${rel}/**/*`, '.git/**/*', '.svn/**/*'].concat(watchIgnore);
-        }
+            watcher.on('add', path => {
+                    this.log.info(`File ${path} has been added`);
+                    this._onFileDiff({
+                        filename: path,
+                        cmd: 'add'
+                    });
+                })
+                .on('change', path => {
+                    this.log.info(`File ${path} has been changed`);
+                    this._onFileDiff({
+                        filename: path,
+                        cmd: 'change'
+                    });
+                })
+                .on('unlink', path => {
+                    this.log.info(`File ${path} has been removed`);
+                    this._onFileDiff({
+                        filename: path,
+                        cmd: 'remove'
+                    });
+                });
 
-        const watcher = chokidar.watch(`**/*`, watchOptions);
-
-        watcher.on('add', path => {
-                this.log.info(`File ${path} has been added`);
-                this._onFileDiff({
-                    filename: path,
-                    cmd: 'add'
-                });
-            })
-            .on('change', path => {
-                this.log.info(`File ${path} has been changed`);
-                this._onFileDiff({
-                    filename: path,
-                    cmd: 'change'
-                });
-            })
-            .on('unlink', path => {
-                this.log.info(`File ${path} has been removed`);
-                this._onFileDiff({
-                    filename: path,
-                    cmd: 'remove'
-                });
+            // Loop up what has be changed during the flowing just now
+            this.on('complete', () => {
+                this._dispatchFileChange();
             });
 
-        // Loop up what has be changed during the flowing just now
-        this.on('complete', () => {
-            this._dispatchFileChange();
-        });
+            this.on('error', () => {
+                this._dispatchFileChange();
+            });
 
-        this.on('error', () => {
-            this._dispatchFileChange();
-        });
-
-        return watcher;
-    }
-    /**
-     * Safe emit
-     * 
-     * @param  {...mixin} args
-     */
-    trigger(...args) {
-        try { 
-            this.emit(...args);
-        } catch(e) {
-            // empty
+            return watcher;
         }
-    }
-    /**
-     * Walk all the streams and flow.
-     * 
-     * @return {Promise}
-     */
-    walkStream() {
-        const BUILD_ID = Date.now();
-        return new Promise((resolve, reject) => {
-            const ret = [];
-            let sIdx = -1;
-            
-            this.trigger('start', BUILD_ID);
+        /**
+         * Safe emit
+         * 
+         * @param  {...mixin} args
+         */
+    trigger(...args) {
+            try {
+                this.emit(...args);
+            } catch (e) {
+                // empty
+            }
+        }
+        /**
+         * Walk all the streams and flow.
+         * 
+         * @return {Promise}
+         */
+    async walkStream() {
+            const BUILD_ID = Date.now();
+            let ret = [];
 
-            const _walkStream = () => {
-                sIdx += 1;
-                if (sIdx === this._streamWrappers.length) {
-                    resolve(flattenDeep(ret));
-                } else {
+            try {
+                this.trigger('start', BUILD_ID);
+
+                for (let streamWrapper of this._streamWrappers) {
                     const {
                         stream,
                         isDormant,
                         flowsCount,
                         files
-                    } = this._streamWrappers[sIdx];
-
+                    } = streamWrapper;
+                    
                     if (isDormant && flowsCount > 0) {
-                        _walkStream();
-                    } else {
-                        const FLOW_ID = Date.now();
-
-                        this.trigger('flowstart', {
-                            tag: stream.tag
-                        }, FLOW_ID, BUILD_ID);
-
-                        this._streamWrappers[sIdx].flowsCount += 1;
-
-                        stream.flow(files.values())
-                            .then(
-                                data => {
-                                    this.trigger('flowend', {
-                                        tag: stream.tag
-                                    }, FLOW_ID, BUILD_ID);
-
-                                    ret.push(data);
-                                    _walkStream();
-                                }, reject);
+                        continue;
                     }
-                }
-            };
+                    const FLOW_ID = Date.now();
 
-            _walkStream();
-        }).then(files => {
-            this.trigger('complete', files, BUILD_ID);
-            return files;
-        }, err => {
-            this.trigger('error', err, BUILD_ID);
-            throw err;
-        });
-    }
-    /**
-     * Invoked after file changed/added/removed,
-     * for re-building.
-     *
-     * It tries to incrementally modified the cache
-     * in streams, which supports fast re-build.
-     * 
-     * @param  {...object} diffs
-     * @return {Promise}
-     */
-    _onFileDiff(...diffs) {
+                    this.trigger('flowstart', {
+                        tag: stream.tag
+                    }, FLOW_ID, BUILD_ID);
+
+                    streamWrapper.flowsCount += 1;
+
+                    const data = await stream.flow(files.values());
+
+                    this.trigger('flowend', {
+                        tag: stream.tag
+                    }, FLOW_ID, BUILD_ID);
+
+                    ret.push(data);
+                }
+
+                ret = flattenDeep(ret);
+                this.trigger('complete', ret, BUILD_ID);
+                return ret;
+            } catch (err) {
+                this.trigger('error', err, BUILD_ID);
+                return [];
+            }
+        }
+        /**
+         * Invoked after file changed/added/removed,
+         * for re-building.
+         *
+         * It tries to incrementally modified the cache
+         * in streams, which supports fast re-build.
+         * 
+         * @param  {...object} diffs
+         * @return {Promise}
+         */
+    async _onFileDiff(...diffs) {
         const changedFileNames = diffs.map(f => f.filename);
         const dependencyFileNames = this._dependencies.resolve(...changedFileNames);
-        
+
         // Find all the files should be transformed again
         const filesShouldBeTransformedAgain = diffs.concat(dependencyFileNames.map(filename => ({
             filename,
@@ -471,20 +469,20 @@ class Panto extends EventEmitter {
 
         clearTimeout(this._reflowTimeout);
 
-        return new Promise((resolve, reject) => {
-            this._reflowTimeout = setTimeout(() => {
+        return await new Promise((resolve, reject) => {
+            this._reflowTimeout = setTimeout(async () => {
                 // Await flowing complete
                 if (!this.isFlowing) {
-                    this._dispatchFileChange().then(resolve, reject);
+                    await this._dispatchFileChange().then(resolve, reject);
                 } else {
                     resolve([]);
                 }
             }, 500);
         });
     }
-    _dispatchFileChange() {
+    async _dispatchFileChange() {
         if (!this._fileDiffQueue.length) {
-            return Promise.resolve([]);
+            return [];
         }
 
         const filesShouldBeTransformedAgain = [...this._fileDiffQueue];
@@ -503,17 +501,20 @@ class Panto extends EventEmitter {
         // Rest streams may be more than one
         const restStreamIdxes = [];
         let isDeservedTransform = false;
-        
+
         for (let i = 0; i < filesShouldBeTransformedAgain.length; ++i) {
             let matched = false;
 
-            if('remove' === filesShouldBeTransformedAgain[i].cmd) {
+            if ('remove' === filesShouldBeTransformedAgain[i].cmd) {
                 this._dependencies.clear(filesShouldBeTransformedAgain[i].filename);
             }
 
             for (let j = 0; j < this._streamWrappers.length; ++j) {
-                let {pattern, files} = this._streamWrappers[j];
-                if(null === pattern){
+                let {
+                    pattern,
+                    files
+                } = this._streamWrappers[j];
+                if (null === pattern) {
                     restStreamIdxes.push(j);
                 } else if (this.file.match(filesShouldBeTransformedAgain[i].filename, pattern).length) {
                     files.fix(filesShouldBeTransformedAgain[i]);
@@ -532,10 +533,10 @@ class Panto extends EventEmitter {
 
         // Nothing has to be done
         if (!isDeservedTransform) {
-            return Promise.resolve([]);
+            return [];
         }
 
-        return this.walkStream();
+        return await this.walkStream();
     }
 }
 

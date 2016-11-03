@@ -4,7 +4,7 @@
         "node": true
     },
     "parserOptions": {
-        "ecmaVersion": 6,
+        "ecmaVersion": 8,
         "sourceType": "module",
         "ecmaFeatures": {
         }
@@ -13,8 +13,8 @@
         "semi": 2
     },
     "globals": {
-        "Promise": 1,
-        "panto": 1,
-        "Map": 1
+        "Promise": true,
+        "panto": true,
+        "Map": true
     }
 }
