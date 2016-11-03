@@ -1,6 +1,6 @@
 {
   "name": "panto",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "PantoJS is an extreme flexible file transforming engine",
   "main": "index.js",
   "scripts": {
@@ -40,7 +40,7 @@
     "panto-file-utils": "^0.3.1",
     "panto-logger": "^0.2.3",
     "panto-options": "^0.1.2",
-    "panto-stream": "^0.7.8",
+    "panto-stream": "^0.8.0",
     "subdir": "0.0.3"
   },
   "devDependencies": {
