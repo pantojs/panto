@@ -3,7 +3,7 @@ before_install:
   - npm install -g eslint
 sudo: false
 node_js:
-  - stable
+  - node 
 after_script:
   - npm install -g istanbul
   - npm run coveralls
