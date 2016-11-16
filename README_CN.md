@@ -3,7 +3,9 @@
 
 [![NPM](https://nodei.co/npm/panto.png?downloads&downloadRank)](https://nodei.co/npm/panto/)
 
-_**[PantoJS<sup>®</sup>](http://pantojs.xyz/)**_ 是一个***极其灵活***的文件转换引擎，通常用于项目的构建和编译，特别是 Web 前端项目。
+参见 <http://www.infoq.com/cn/articles/constructe-tool-optimize-for-complex-web-front-end-projects>。
+
+_**[PantoJS](http://pantojs.xyz/)**_ 是一个***极其灵活***的文件转换引擎，通常用于项目的构建和编译，特别是 Web 前端项目。
 
 它比较类似于 [Grunt](http://gruntjs.com) 或 [Gulp](http://gulpjs.com)，但更**高效**、**强大**和**灵活**。
 
@@ -300,5 +302,5 @@ panto.build().then(() => {
 [david-dm-image]: https://david-dm.org/pantojs/panto.svg
 [david-dm-dev-url]: https://david-dm.org/pantojs/panto?type=dev
 [david-dm-dev-image]: https://david-dm.org/pantojs/panto/dev-status.svg
-[coveralls-image]: https://coveralls.io/repos/github/pantojs/panto/badge.svg?branch=master
+[coveralls-image]: https://coveralls.io/repos/github/pantojs/panto/badge.svg
 [coveralls-url]: https://coveralls.io/github/pantojs/panto?branch=master

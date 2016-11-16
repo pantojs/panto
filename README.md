@@ -3,6 +3,8 @@
 
 [![NPM](https://nodei.co/npm/panto.png?downloads&downloadRank)](https://nodei.co/npm/panto/)
 
+See <http://www.infoq.com/cn/articles/constructe-tool-optimize-for-complex-web-front-end-projects>.
+
 #### [中文版 README](README_CN.md)
 
 _**[PantoJS](http://pantojs.xyz/)**_ is an ***extremely flexible*** file transforming engine. It is usually used for building projects, especially web front-end projects.
