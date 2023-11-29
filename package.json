@@ -32,7 +32,7 @@
   "homepage": "https://github.com/pantojs/panto#readme",
   "dependencies": {
     "callback2promise": "^1.0.2",
-    "chokidar": "^1.6.1",
+    "chokidar": "^3.0.0",
     "define-frozen-property": "^0.1.0",
     "glob": "^7.1.1",
     "lodash": "^4.16.4",
