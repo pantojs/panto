@@ -34,7 +34,7 @@
     "callback2promise": "^1.0.2",
     "chokidar": "^1.6.1",
     "define-frozen-property": "^0.1.0",
-    "glob": "^7.1.1",
+    "glob": "^9.0.0",
     "lodash": "^4.16.4",
     "panto-dependency-map": "^0.2.1",
     "panto-file-utils": "^0.3.1",
